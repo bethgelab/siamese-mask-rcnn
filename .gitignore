@@ -6,6 +6,7 @@ install_requirements.ipynb
 
 ###
 cocoapi/*
+Mask_RCNN/*
 
 # Created by https://www.gitignore.io/api/vim,linux,macos,jupyternotebook
 

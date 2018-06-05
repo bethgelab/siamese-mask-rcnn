@@ -3,6 +3,9 @@ train_imagenet.ipynb
 train_siamese_mask_rcnn.ipynb
 train_siamese_semantic.ipynb
 
+###
+cocoapi/*
+
 # Created by https://www.gitignore.io/api/vim,linux,macos,jupyternotebook
 
 ### JupyterNotebook ###

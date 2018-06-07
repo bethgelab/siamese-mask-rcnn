@@ -7,6 +7,7 @@ import time
 import random
 import numpy as np
 import skimage.io
+import skimage.transform as skt
 import imgaug
 import matplotlib.pyplot as plt
 plt.rcParams['figure.figsize'] = (12.0, 6.0)
@@ -21,6 +22,8 @@ from mrcnn import utils
 from mrcnn import model as modellib
 from mrcnn import visualize  
     
+import warnings
+warnings.filterwarnings("ignore")
     
 ### Data Generator ###
     
@@ -437,18 +440,78 @@ def find_correct_detections(class_gt_boxes, detected_boxes, threshold=0.5, verbo
                 
     return correct_ious
 
+def find_correct_segmentations(class_gt_masks, predicted_masks, class_gt_detections, predicted_detections, threshold=0.5, verbose=0, epsilon=0.0001):
+    detection_ious = find_correct_detections(class_gt_detections, predicted_detections, threshold=threshold, verbose=verbose)
 
-def assign_detections(correct_ious, threshold=0.5):
+    segmentation_ious = np.zeros_like(detection_ious)
+    for i in range(class_gt_masks.shape[0]):
+        for j in range(predicted_masks.shape[0]):
+            if detection_ious[i,j] < threshold:
+                continue
+            else:
+                gty1, gtx1, gty2, gtx2 = class_gt_detections[i,:]
+                pry1, prx1, pry2, prx2 = predicted_detections[j,:]
+                oy1, ox1, oy2, ox2 = find_overlap_coordinates(gty1, gtx1, gty2, gtx2, pry1, prx1, pry2, prx2)
+
+                predicted_mask = predicted_masks[j]
+                class_gt_mask = skt.resize(class_gt_masks[i], (gty2 - gty1, gtx2 - gtx1)) > 0.0
+
+                predicted_mask_overlap = predicted_mask[oy1 : oy2, ox1 : ox2]
+                class_gt_mask_overlap = class_gt_mask[(oy1 - gty1) : (oy2 - gty1), (ox1 - gtx1) : (ox2 - gtx1)] 
+
+                intersection = np.sum(predicted_mask_overlap * class_gt_mask_overlap)
+                union = np.sum(predicted_mask) - np.sum(predicted_mask_overlap) + \
+                        np.sum(class_gt_mask) - np.sum(class_gt_mask_overlap) + \
+                        np.sum(np.clip(predicted_mask_overlap + class_gt_mask_overlap, 0, 1))
+                IoU = intersection / (union + epsilon)
+
+                segmentation_ious[i, j] = IoU
+
+    return segmentation_ious
+
+
+def find_overlap_coordinates(gty1, gtx1, gty2, gtx2, pry1, prx1, pry2, prx2):
+    ox1 = np.max([gtx1, prx1])
+    ox2 = np.min([gtx2, prx2])
+    oy1 = np.max([gty1, pry1])
+    oy2 = np.min([gty2, pry2])
+
+    return oy1, ox1, oy2, ox2
+
+def assign_detections(correct_ious, threshold=0.5, return_index=False):
     # Greedy assignment from first to last gt instance (could be optimized!)
     best_matches_iou = []
+    best_matches_index = []
     for i in range(correct_ious.shape[0]):
         if any(correct_ious[i,:] >= threshold):
             best_match = np.max(correct_ious[i,:])
             best_matches_iou.append(best_match)
             index = np.argmax(correct_ious[i,:])
+            best_matches_index.append(index)
             correct_ious[:,index] = 0
             correct_ious[i,index] = best_match
         else:
             best_matches_iou.append(0)
+
+            # If IoU is zero just append -1 as the best matching index
+            # to mark this case and simplify the assign_segmentations
+            best_matches_index.append(-1)
+            
+    if return_index:
+        return best_matches_iou, best_matches_index
+    else:
+        return best_matches_iou
+
+def assign_segmentations(correct_ious_segmentation, correct_ious_detection, threshold=0.5):
+    _, best_matches_index = assign_detections(correct_ious_detection, threshold=threshold, return_index=True)
+
+    best_matches_iou = []
+    for i in range(correct_ious_segmentation.shape[0]):
+        best_index_i = best_matches_index[i]
+        if best_index_i == -1:
+            best_matches_iou.append(0)
+            continue
+        best_matches_iou.append(correct_ious_segmentation[i][best_index_i])
             
     return best_matches_iou
+

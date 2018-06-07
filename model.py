@@ -726,3 +726,193 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
         print('JI50: {:.2f}'.format(np.mean(jaccard_index)*100))
         print('FPR50: {:.2f}'.format(np.mean(fpr)*100))
         print('FNR50: {:.2f}'.format(np.mean(fnr)*100))
+
+
+    def evaluate_dataset2(self, dataset, eval_type='detection', max_images=None, verbose=0):
+
+        # Currently only batch size 1 ist supported
+        assert self.config.BATCH_SIZE == 1, "Batch size must be 1"
+        assert eval_type in ['detection', 'segmentation']
+        assert self.mode == 'inference', "Model has to be in inference mode"
+
+        # Permute image order
+        image_ids = np.random.permutation(dataset.image_ids)
+        # Limit number of images
+        if max_images:
+            image_ids = image_ids[:max_images]
+            
+        # Numerical stability factor:
+        epsilon = 0.0001
+
+        # Initialize lists to collect results
+        # Get number of classes including BG
+        nC = range(len(dataset.class_ids))
+
+        # Initialize lists for averaged results
+        coco_precisions = []
+        precisions = []
+        recalls = []
+        false_positive_rates = []
+        false_negative_rates = []
+        jaccard_numbers = []
+
+        # Initialize lists to collect results for every class
+        number_of_instances = [[] for c in nC]
+        number_of_predictions = [[] for c in nC]
+        true_positives = [[] for c in nC]
+        false_positives = [[] for c in nC]
+        false_negatives = [[] for c in nC]
+
+        # Iterate over images
+        for image_id in image_ids:
+            if verbose !=0:
+                print(image_id)
+            # Load GT data
+            image, image_meta, gt_class_ids, gt_boxes, gt_masks = modellib.load_image_gt(\
+                                                                                         dataset, 
+                                                                                         self.config, 
+                                                                                         image_id, 
+                                                                                         augmentation=False,
+                                                                                         use_mini_mask=self.config.USE_MINI_MASK)
+
+            # BOILERPLATE: Code duplicated in siamese_data_loader
+            
+            # Skip images that have no instances. This can happen in cases
+            # where we train on a subset of classes and the image doesn't
+            # have any of the classes we care about.
+            if not np.any(gt_class_ids > 0):
+                continue
+                
+            # Use only positive class_ids
+            categories = np.unique(gt_class_ids)
+            _idx = categories > 0
+            categories = categories[_idx]
+            # Use only active classes
+            active_categories = []
+            for c in categories:
+                if any(c == self.config.ACTIVE_CLASSES):
+                    active_categories.append(c)
+            
+            # Skip image if it contains no instance of any active class    
+            if not np.any(np.array(active_categories) > 0):
+                continue
+                
+            # END BOILERPLATE
+
+            # Evaluate for every category individually
+            for category in active_categories:
+
+                # Draw random target
+                target = siamese_utils.get_one_target(category, dataset, self.config)
+                # Run siamese Mask R-CNN
+                results = self.detect([target], [image], verbose=verbose)
+                # Format detections
+                r = results[0]
+
+                # Select gt and predicted boxes and masks
+                class_gt_detections = gt_boxes[gt_class_ids == category]
+                predicted_detections = r['rois']
+                class_gt_segmentations = np.transpose(gt_masks, [2, 0, 1])[gt_class_ids == category]
+                predicted_segmentations = np.transpose(r['masks'], [2, 0, 1])
+
+                # Check IoUs to find correctly identified instances
+                # and select best matches
+                # TODO: Replace with something smarter (what do we want?)
+                correct_ious_detection = siamese_utils.find_correct_detections(class_gt_detections, predicted_detections)
+                if eval_type == 'detection':
+                    best_matches_iou = siamese_utils.assign_detections(correct_ious_detection)
+                elif eval_type == 'segmentation':
+                    correct_ious_segmentation = siamese_utils.find_correct_segmentations(class_gt_segmentations, predicted_segmentations,
+                            class_gt_detections, predicted_detections)
+                    best_matches_iou = siamese_utils.assign_segmentations(correct_ious_segmentation, correct_ious_detection)
+
+    #             TP_at_threshold = []
+    #             for tr in [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]:
+    #                 TP_at_threshold.append(np.sum(np.array(siamese_utils.assign_detections(correct_ious, threshold=tr))))
+    #             coco_precisions.append(TP_at_threshold)
+
+                # Get copunts
+                nI = class_gt_detections.shape[0]
+                nP  = predicted_detections.shape[0]
+                TP = np.sum(np.array(best_matches_iou) > 0.5)
+                FP = nP - TP
+                FN = nI - TP
+                number_of_instances[category].append(nI)
+                number_of_predictions[category].append(nP)
+                true_positives[category].append(TP)
+                false_positives[category].append(FP)
+                false_negatives[category].append(FN)
+                # Calculate averaged statistics
+                jaccard_index = TP / (TP + FP + FN)
+                jaccard_numbers.append(jaccard_index)
+                precision = TP / (nP + epsilon)
+                precisions.append(precision)
+                recall = TP / (nI + epsilon)
+                recalls.append(recall)
+                fpr = FP / (nP + epsilon)
+                false_positive_rates.append(fpr)
+                fnr = FN / (nI + epsilon)
+                false_negative_rates.append(fnr)
+
+                #print(true_positives, false_positives, false_negatives, number_of_instances)
+                #print(jaccard_index, precision)
+
+        # Print averaged Statistics   
+        print('Averaged')
+    #     print('AP: {:.2f}'.format(np.mean(coco_precisions)*100)) 
+        print('AP50: {:.2f}'.format(np.mean(precisions)*100))
+        print('AR50: {:.2f}'.format(np.mean(recalls)*100))
+        print('JI50: {:.2f}'.format(np.mean(jaccard_numbers)*100))
+        print('FPR50: {:.2f}'.format(np.mean(false_positive_rates)*100))
+        print('FNR50: {:.2f}'.format(np.mean(false_negative_rates)*100))
+
+        # Aggregate class-wise counts
+        number_of_instances = np.array([np.sum(number_of_instances[c]) for c in nC])
+        number_of_predictions = np.array([np.sum(number_of_predictions[c]) for c in nC])
+        true_positives = np.array([np.sum(true_positives[c]) for c in nC])
+        false_positives = np.array([np.sum(false_positives[c]) for c in nC])
+        false_negatives = np.array([np.sum(false_negatives[c]) for c in nC])
+        # Compute class-wise statistics
+        jaccard_index = [(true_positives[c] + epsilon) /\
+                         (true_positives[c] + false_positives[c] + false_negatives[c] + epsilon) for c in nC]
+        precision = [(true_positives[c] + epsilon) / (number_of_predictions[c] + epsilon) for c in nC]
+        recall = [(true_positives[c] + epsilon) / (number_of_instances[c] + epsilon) for c in nC]
+        fpr = [false_positives[c] / (number_of_predictions[c] + epsilon) for c in nC]
+        fnr = [(false_negatives[c] + epsilon) / (number_of_instances[c] + epsilon) for c in nC]
+        # Remove unencountered classes
+        idx = number_of_instances != 0
+        jaccard_index = np.array(jaccard_index)[idx]
+        precision = np.array(precision)[idx]
+        recall = np.array(recall)[idx]
+        fpr = np.array(fpr)[idx]
+        fnr = np.array(fnr)[idx]
+        # Print class-wise aggregated statistics
+        print('')
+        print('Aggregated per Class')
+        print('AP50: {:.2f}'.format(np.mean(precision)*100))
+        print('AR50: {:.2f}'.format(np.mean(recall)*100))
+        print('JI50: {:.2f}'.format(np.mean(jaccard_index)*100))
+        print('FPR50: {:.2f}'.format(np.mean(fpr)*100))
+        print('FNR50: {:.2f}'.format(np.mean(fnr)*100))
+        print('Encountered classes: {}'.format(np.sum(idx)))
+
+        # Aggregate counts
+        number_of_instances = np.sum(np.array([np.sum(number_of_instances[c]) for c in nC]))
+        number_of_predictions = np.sum(np.array([np.sum(number_of_predictions[c]) for c in nC]))
+        true_positives = np.sum(np.array([np.sum(true_positives[c]) for c in nC]))
+        false_positives = np.sum(np.array([np.sum(false_positives[c]) for c in nC]))
+        false_negatives = np.sum(np.array([np.sum(false_negatives[c]) for c in nC]))
+        # Compoute aggregated statistics
+        jaccard_index = (true_positives + epsilon) / (true_positives + false_positives + false_negatives + epsilon)
+        precision = (true_positives + epsilon) / (number_of_predictions + epsilon)
+        recall = (true_positives + epsilon) / (number_of_instances + epsilon)
+        fpr = false_positives / (number_of_predictions + epsilon)
+        fnr = (false_negatives + epsilon) / (number_of_instances + epsilon)
+        #Print aggregated statistics
+        print('')
+        print('Aggregated')
+        print('AP50: {:.2f}'.format(np.mean(precision)*100))
+        print('AR50: {:.2f}'.format(np.mean(recall)*100))
+        print('JI50: {:.2f}'.format(np.mean(jaccard_index)*100))
+        print('FPR50: {:.2f}'.format(np.mean(fpr)*100))
+        print('FNR50: {:.2f}'.format(np.mean(fnr)*100))

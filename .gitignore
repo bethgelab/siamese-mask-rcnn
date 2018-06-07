@@ -3,10 +3,15 @@ train_imagenet.ipynb
 train_siamese_mask_rcnn.ipynb
 train_siamese_semantic.ipynb
 install_requirements.ipynb
+evaluate.ipynb
 
 ###
 cocoapi/*
 Mask_RCNN/*
+transformer/*
+__pycache__/*
+*.h5
+slim/*
 
 # Created by https://www.gitignore.io/api/vim,linux,macos,jupyternotebook
 

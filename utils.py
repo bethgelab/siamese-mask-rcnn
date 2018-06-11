@@ -342,6 +342,9 @@ class IndexedADE20KDataset(ade20k.ADE20KDataset):
             # Put list together
             category_image_index.append(images_per_category)
 
+        print(len(category_image_index))
+        print(category_image_index[:10])
+
         return category_image_index
     
 ### Visualization ###

@@ -25,6 +25,8 @@ class ADE20KDataset(utils.Dataset):
         index = scipy.io.loadmat(dataset_dir + '/index_ade20k.mat')['index'][0][0]
 
         filenames      = [folder[0] + '/' + filename[0] for folder, filename in zip(index[1][0], index[0][0])]
+        filenames      = [dataset_dir + '/' + '/'.join(f.split('/')[1:]) for f in filenames]
+        afs
         objectnames    = [f[0] for f in index[6][0]]
         objectPresence = index[4].astype(np.int)
 

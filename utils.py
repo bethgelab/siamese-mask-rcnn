@@ -34,12 +34,12 @@ def get_one_target(category, dataset, config, augmentation=None):
     category_image_index = dataset.category_image_index
     # Draw a random image
     random_image_id = np.random.choice(category_image_index[category])
-    print(random_image_id)
-    fas
+    # print(category, random_image_id)
     # Load image    
     target_image, target_image_meta, target_class_ids, target_boxes, target_masks = \
         modellib.load_image_gt(dataset, config, random_image_id, augmentation=augmentation,
                       use_mini_mask=config.USE_MINI_MASK)
+    # print(target_class_ids)
 
     box_ind = np.random.choice(np.where(target_class_ids == category)[0])   
     tb = target_boxes[box_ind,:]
@@ -337,10 +337,12 @@ class IndexedADE20KDataset(ade20k.ADE20KDataset):
         category_image_index = []
         for category in range(np.max(sum(image_category_index, [])) + 1):
             # Find all images corresponding to the selected class/category 
-            images_per_category = np.where(\
-                [any(image_category_index[i][j] == category\
-                 for j in range(len(image_category_index[i])))\
-                 for i in range(len(image_category_index))])[0]
+            images_per_category = [i for i, image_categories in enumerate(image_category_index)
+                                   if category in image_categories]
+            # images_per_category = np.where(\
+            #     [any(image_category_index[i][j] == category\
+            #      for j in range(len(image_category_index[i])))\
+            #      for i in range(len(image_category_index))])[0]
             # Put list together
             category_image_index.append(images_per_category)
 

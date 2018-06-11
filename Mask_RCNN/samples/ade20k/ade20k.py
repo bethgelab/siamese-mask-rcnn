@@ -26,7 +26,7 @@ class ADE20KDataset(utils.Dataset):
 
         filenames_relative = [folder[0] + '/' + filename[0] for folder, filename in zip(index[1][0], index[0][0])]
         filenames          = [dataset_dir + '/' + '/'.join(f.split('/')[1:]) for f in filenames_relative]
-        objectnames        = [f[0] for f in index[6][0]]
+        objectnames        = ['dummy_background'] + [f[0] for f in index[6][0]]
         objectPresence     = index[4].astype(np.int)
 
         with open(dataset_dir + '/image_sizes.pkl', 'rb') as f:
@@ -42,6 +42,9 @@ class ADE20KDataset(utils.Dataset):
         idx = [i for i, f in enumerate(filenames) if filter_fn(f)]
         filenames      = [filenames[i] for i in idx]
         objectPresence = objectPresence[:, idx]
+        
+        # Add dummy background class
+        objectPresence = np.concatenate([np.zeros((1, objectPresence.shape[1])), objectPresence])
 
         if not class_ids:
             # All classes with existing instances

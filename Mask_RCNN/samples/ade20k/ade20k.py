@@ -22,7 +22,7 @@ class ADE20KConfig(Config):
 
 class ADE20KDataset(utils.Dataset):
     def load_ade20k(self, dataset_dir, subset, class_ids=None, class_map=None):
-        index = scipy.io.loatmat(dataset_dir + '/index_ade20k.mat')['index'][0][0]
+        index = scipy.io.loadmat(dataset_dir + '/index_ade20k.mat')['index'][0][0]
 
         filenames      = [folder[0] + '/' + filename[0] for folder, filename in zip(index[1][0], index[0][0])]
         objectnames    = [f[0] for f in index[6][0]]
@@ -40,18 +40,17 @@ class ADE20KDataset(utils.Dataset):
 
         idx = [i for i, f in enumerate(filenames) if filter_fn(f)]
         filenames      = [filenames[i] for i in idx]
-        objectnames    = [objectnames[i] for i in idx]
         objectPresence = objectPresence[:, idx]
 
         if not class_ids:
             # All classes with existing instances
-            class_ids = np.where(np.sum(objectPresence, 1) > 0)[0]
+            class_ids = list(np.where(np.sum(objectPresence, 1) > 0)[0])
 
         if class_ids:
             # Take images of corresponding classes
             image_ids = []
             for class_id in class_ids:
-                image_ids.extend(list(np.where(objectPresence[class_id][0])))
+                image_ids.extend(list(np.where(objectPresence[class_id])[0]))
             image_ids = list(set(image_ids))
 
         # Add classes
@@ -69,9 +68,9 @@ class ADE20KDataset(utils.Dataset):
             self.add_image(
                     'ade20k', image_id=i,
                     path=filenames[i],
-                    width=image_size[filenames[i]][0],
-                    height=image_size[filenames[i]][1],
-                    annotations=annotations)
+                    width=image_sizes[filenames[i]][0],
+                    height=image_sizes[filenames[i]][1],
+                    annotations=annotations[i])
 
     def load_mask(self, image_id):
         instance_masks = []

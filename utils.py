@@ -292,7 +292,7 @@ class IndexedCocoDataset(coco.CocoDataset):
                                            )\
                                  )
             # Map 91 class IDs 81 to Mask-RCNN model type IDs
-            class_ids = [dataset.map_source_class_id("ade20k.{}".format(coco_class_ids[k]))\
+            class_ids = [dataset.map_source_class_id("coco.{}".format(coco_class_ids[k]))\
                          for k in range(len(coco_class_ids))]
             # Put list together
             image_category_index.append(class_ids)
@@ -326,14 +326,14 @@ class IndexedADE20KDataset(ade20k.ADE20KDataset):
 
         image_category_index = []
         for im in range(len(dataset.image_info)):
-            image_category_index.append(dataset.image_info[im]['annotations']['class_index'])
+            image_category_index.append(list(dataset.image_info[im]['annotations']['class_index']))
 
         return image_category_index
 
     def _build_category_image_index(image_category_index):
 
         category_image_index = []
-        for category in range(max(image_category_index)[0]+1):
+        for category in range(np.max(sum(image_category_index, [])) + 1):
             # Find all images corresponding to the selected class/category 
             images_per_category = np.where(\
                 [any(image_category_index[i][j] == category\

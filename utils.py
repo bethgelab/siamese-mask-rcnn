@@ -281,6 +281,7 @@ class IndexedCocoDataset(coco.CocoDataset):
         self.category_image_index = IndexedCocoDataset._build_category_image_index(self.image_category_index)
 
     def _build_image_category_index(dataset):
+        print(len((dataset.image_info[0]['annotations'])))
         print(dataset.image_info[0]['annotations'])
         asdag
 

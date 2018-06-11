@@ -18,7 +18,7 @@ if MASK_RCNN_MODEL_PATH not in sys.path:
     sys.path.append(MASK_RCNN_MODEL_PATH)
     
 from samples.coco import coco
-from sample.ade20k import ade20k
+from samples.ade20k import ade20k
 from mrcnn import utils
 from mrcnn import model as modellib
 from mrcnn import visualize  

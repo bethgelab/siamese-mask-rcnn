@@ -2,7 +2,7 @@ import numpy as np
 import scipy.io
 
 import pickle
-from loadADE20K import loadADE20K
+from .loadADE20K import loadADE20K
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")

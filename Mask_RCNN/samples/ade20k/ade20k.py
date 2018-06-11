@@ -81,7 +81,7 @@ class ADE20KDataset(utils.Dataset):
         # of class IDs that correspond to each channel of the mask.
         object_mask, instance_mask = loadADE20K(self.image_info[image_id]['path'])
 
-        for instance_id in np.unique(istance_mask):
+        for instance_id in np.unique(instance_mask):
             instance_id_mask = (instance_mask == instance_id)
             if np.sum(instance_id_mask) < 1:
                 continue

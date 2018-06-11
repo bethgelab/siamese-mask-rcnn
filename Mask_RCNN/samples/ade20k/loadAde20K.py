@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def loadAde20K(filename):
+def loadADE20K(filename):
     """
     Python translation of the original MATLAB function.
     So far it only loads the semantic and instance segemntation masks.

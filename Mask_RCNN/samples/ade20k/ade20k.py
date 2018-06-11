@@ -2,6 +2,7 @@ import numpy as np
 import scipy.io
 
 import pickle
+from loadADE20K import loadAde20K
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
@@ -64,4 +65,25 @@ class ADE20KDataset(util.Dataset):
                     height=image_size[filenames[i]][1])
 
     def load_mask(self, image_id):
-        pass
+        instance_masks = []
+        class_ids = []
+
+        # Build mask of shape [height, width, instance_count] and list
+        # of class IDs that correspond to each channel of the mask.
+        object_mask, instance_mask = loadADE20K(self.image_info[image_id]['path'])
+
+        for instance_id in np.unique(istance_mask):
+            instance_id_mask = (instance_mask == instance_id)
+            if np.sum(instance_id_mask) < 1:
+                continue
+            instance_masks.append(instance_id_mask)
+            class_ids.append(int(np.median(object_mask[instance_id_mask])))
+
+        if class_ids:
+            mask = np.stack(instance_masks, axis=2).astype(np.bool)
+            class_ids = np.array(class_ids, dtype=np.int32)
+            return mask, class_ids
+        else:
+            # Call super class to return an empty mask
+            return super(CocoDataset, self).load_mask(image_id)
+

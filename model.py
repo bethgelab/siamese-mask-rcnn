@@ -774,7 +774,7 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
                                                                                          image_id, 
                                                                                          augmentation=False,
                                                                                          use_mini_mask=self.config.USE_MINI_MASK)
-
+            
             # BOILERPLATE: Code duplicated in siamese_data_loader
             
             # Skip images that have no instances. This can happen in cases

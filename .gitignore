@@ -7,7 +7,7 @@ evaluate.ipynb
 
 ###
 cocoapi/*
-Mask_RCNN/*
+# Mask_RCNN/*
 transformer/*
 __pycache__/*
 *.h5

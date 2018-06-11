@@ -61,8 +61,8 @@ class ADE20KDataset(utils.Dataset):
         # Build annotations (list of classes for all images)
         annotations = []
         for i in image_ids:
-            pass
-
+            image_classes = np.unique(np.where(objectPresence[:,i] > 0)[0])
+            annotations.append({'class_index': image_classes})
 
         # Add images
         for i in image_ids:
@@ -70,7 +70,8 @@ class ADE20KDataset(utils.Dataset):
                     'ade20k', image_id=i,
                     path=filenames[i],
                     width=image_size[filenames[i]][0],
-                    height=image_size[filenames[i]][1])
+                    height=image_size[filenames[i]][1],
+                    annotations=annotations)
 
     def load_mask(self, image_id):
         instance_masks = []

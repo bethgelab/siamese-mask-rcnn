@@ -2,7 +2,7 @@ import numpy as np
 import scipy.io
 
 import pickle
-from loadADE20K import loadAde20K
+from loadADE20K import loadADE20K
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
@@ -55,6 +55,12 @@ class ADE20KDataset(util.Dataset):
         # Add classes
         for i in class_ids:
             self.add_class('ade20k', i, objectnames[i])
+
+        # Build annotations (list of classes for all images)
+        annotations = []
+        for i in image_ids:
+            pass
+
 
         # Add images
         for i in image_ids:

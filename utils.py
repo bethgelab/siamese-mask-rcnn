@@ -18,6 +18,7 @@ if MASK_RCNN_MODEL_PATH not in sys.path:
     sys.path.append(MASK_RCNN_MODEL_PATH)
     
 from samples.coco import coco
+from sample.ade20k import ade20k
 from mrcnn import utils
 from mrcnn import model as modellib
 from mrcnn import visualize  
@@ -280,6 +281,8 @@ class IndexedCocoDataset(coco.CocoDataset):
         self.category_image_index = IndexedCocoDataset._build_category_image_index(self.image_category_index)
 
     def _build_image_category_index(dataset):
+        print(dataset.image_info[0]['annotations'])
+        asdag
 
         image_category_index = []
         for im in range(len(dataset.image_info)):
@@ -314,6 +317,46 @@ class IndexedCocoDataset(coco.CocoDataset):
         return category_image_index
     
     
+class IndexedADE20KDataset(ade20k.ADE20KDataset):
+    
+    def build_indices(self):
+
+        self.image_category_index = IndexedADE20KDataset._build_image_category_index(self)
+        self.category_image_index = IndexedADE20KDataset._build_category_image_index(self.image_category_index)
+
+    def _build_image_category_index(dataset):
+
+        image_category_index = []
+        for im in range(len(dataset.image_info)):
+            # List all classes in an image
+            coco_class_ids = list(\
+                                  np.unique(\
+                                            [dataset.image_info[im]['annotations'][i]['category_id']\
+                                             for i in range(len(dataset.image_info[im]['annotations']))]\
+                                           )\
+                                 )
+            # Map 91 class IDs 81 to Mask-RCNN model type IDs
+            class_ids = [dataset.map_source_class_id("coco.{}".format(coco_class_ids[k]))\
+                         for k in range(len(coco_class_ids))]
+            # Put list together
+            image_category_index.append(class_ids)
+
+        return image_category_index
+
+    def _build_category_image_index(image_category_index):
+
+        category_image_index = []
+        # Loop through all 81 Mask-RCNN classes/categories
+        for category in range(max(image_category_index)[0]+1):
+            # Find all images corresponding to the selected class/category 
+            images_per_category = np.where(\
+                [any(image_category_index[i][j] == category\
+                 for j in range(len(image_category_index[i])))\
+                 for i in range(len(image_category_index))])[0]
+            # Put list together
+            category_image_index.append(images_per_category)
+
+        return category_image_index
     
 ### Visualization ###
 

@@ -34,6 +34,8 @@ def get_one_target(category, dataset, config, augmentation=None):
     category_image_index = dataset.category_image_index
     # Draw a random image
     random_image_id = np.random.choice(category_image_index[category])
+    print(random_image_id)
+    fas
     # Load image    
     target_image, target_image_meta, target_class_ids, target_boxes, target_masks = \
         modellib.load_image_gt(dataset, config, random_image_id, augmentation=augmentation,
@@ -341,9 +343,6 @@ class IndexedADE20KDataset(ade20k.ADE20KDataset):
                  for i in range(len(image_category_index))])[0]
             # Put list together
             category_image_index.append(images_per_category)
-
-        print(len(category_image_index))
-        print(category_image_index[:10])
 
         return category_image_index
     

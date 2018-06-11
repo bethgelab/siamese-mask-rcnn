@@ -1,3 +1,5 @@
+import os
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.io
@@ -18,7 +20,7 @@ class ADE20KConfig(Config):
     # GPU_count = 8
     NUM_CLASSES = 1 + 3147
 
-class ADE20KDataset(util.Dataset):
+class ADE20KDataset(utils.Dataset):
     def load_ade20k(self, dataset_dir, subset, class_ids=None, class_map=None):
         index = scipy.io.loatmat(dataset_dir + '/index_ade20k.mat')['index'][0][0]
 

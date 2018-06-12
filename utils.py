@@ -34,14 +34,16 @@ def get_one_target(category, dataset, config, augmentation=None):
     category_image_index = dataset.category_image_index
     # Draw a random image
     random_image_id = np.random.choice(category_image_index[category])
-    # print(category, random_image_id)
     # Load image    
     target_image, target_image_meta, target_class_ids, target_boxes, target_masks = \
         modellib.load_image_gt(dataset, config, random_image_id, augmentation=augmentation,
                       use_mini_mask=config.USE_MINI_MASK)
-    # print(target_class_ids)
+    # print(random_image_id, category, target_class_ids)
 
-    box_ind = np.random.choice(np.where(target_class_ids == category)[0])   
+    try:
+        box_ind = np.random.choice(np.where(target_class_ids == category)[0])   
+    except ValueError:
+        return None
     tb = target_boxes[box_ind,:]
     target = target_image[tb[0]:tb[2],tb[1]:tb[3],:]
     target, window, scale, padding, crop = utils.resize_image(
@@ -50,7 +52,6 @@ def get_one_target(category, dataset, config, augmentation=None):
         min_scale=config.IMAGE_MIN_SCALE, #Same scaling as the image
         max_dim=config.TARGET_MAX_DIM,
         mode=config.IMAGE_RESIZE_MODE) #Same output format as the image
-    
     
     return target
 
@@ -116,8 +117,7 @@ def siamese_data_generator(dataset, config, shuffle=True, augmentation=imgaug.au
             image, image_meta, gt_class_ids, gt_boxes, gt_masks = \
                 modellib.load_image_gt(dataset, config, image_id, augmentation=augmentation,
                               use_mini_mask=config.USE_MINI_MASK)
-                
-            
+
             # Replace class ids with foreground/background info if binary
             # class option is chosen
             # if binary_classes == True:
@@ -149,6 +149,9 @@ def siamese_data_generator(dataset, config, shuffle=True, augmentation=imgaug.au
                 
             # Generate siamese target crop
             target = get_one_target(category, dataset, config, augmentation=augmentation)
+            if target is None: # fix until a better ADE20K metadata is built
+                print('skip target')
+                continue
 #             print(target_class_id)
             target_class_id = category
             target_class_ids = np.array([target_class_id])
@@ -339,10 +342,6 @@ class IndexedADE20KDataset(ade20k.ADE20KDataset):
             # Find all images corresponding to the selected class/category 
             images_per_category = [i for i, image_categories in enumerate(image_category_index)
                                    if category in image_categories]
-            # images_per_category = np.where(\
-            #     [any(image_category_index[i][j] == category\
-            #      for j in range(len(image_category_index[i])))\
-            #      for i in range(len(image_category_index))])[0]
             # Put list together
             category_image_index.append(images_per_category)
 

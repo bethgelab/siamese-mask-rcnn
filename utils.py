@@ -347,6 +347,33 @@ class IndexedADE20KDataset(ade20k.ADE20KDataset):
 
         return category_image_index
     
+class IndexedPascalVOCDataset(pascal_voc.PascalVOCDataset):
+    
+    def build_indices(self):
+
+        self.image_category_index = IndexedPascalVOCDataset._build_image_category_index(self)
+        self.category_image_index = IndexedPascalVOCDataset._build_category_image_index(self.image_category_index)
+
+    def _build_image_category_index(dataset):
+
+        image_category_index = []
+        for im in range(len(dataset.image_info)):
+            image_category_index.append(list(dataset.image_info[im]['annotations']['class_index']))
+
+        return image_category_index
+
+    def _build_category_image_index(image_category_index):
+
+        category_image_index = []
+        for category in range(np.max(sum(image_category_index, [])) + 1):
+            # Find all images corresponding to the selected class/category 
+            images_per_category = [i for i, image_categories in enumerate(image_category_index)
+                                   if category in image_categories]
+            # Put list together
+            category_image_index.append(images_per_category)
+
+        return category_image_index
+
 ### Visualization ###
 
 def display_siamese_instances(target, image, boxes, masks, class_ids,

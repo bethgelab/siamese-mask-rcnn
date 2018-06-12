@@ -89,7 +89,7 @@ class ADE20KDataset(utils.Dataset):
             if np.sum(instance_id_mask) < 1:
                 continue
             instance_masks.append(instance_id_mask)
-            class_ids.append(int(np.median(object_mask[instance_id_mask])))
+            class_ids.append(int(np.median(object_mask[instance_id_mask] + 1)))
 
         if class_ids:
             mask = np.stack(instance_masks, axis=2).astype(np.bool)
@@ -97,7 +97,7 @@ class ADE20KDataset(utils.Dataset):
             return mask, class_ids
         else:
             # Call super class to return an empty mask
-            return super(CocoDataset, self).load_mask(image_id)
+            return super(ADE20KDataset, self).load_mask(image_id)
 
 def loadADE20K(filename):
     """

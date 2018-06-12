@@ -50,6 +50,7 @@ class PascalVOCDataset(utils.Dataset):
                               'tvmonitor']
 
         classes_mapping = {(i + 1) : c for i, c in enumerate(pascal_voc_classes)}
+        classes_mapping_inverse = {c : i for i, c in classes_mapping.items()}
 
         if not class_ids:
             # All classes with existing instances
@@ -69,7 +70,7 @@ class PascalVOCDataset(utils.Dataset):
         # Build annotations (list of classes for all images)
         annotations = []
         for i in image_ids:
-            annotations.append({'class_index': image_classes[i]})
+            annotations.append({'class_index': [classes_mapping_inverse[c] for c in image_classes[i]]})
 
         # Add images
         for i in image_ids:

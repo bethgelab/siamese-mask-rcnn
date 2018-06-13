@@ -58,8 +58,6 @@ class ADE20KDataset(utils.Dataset):
                 image_ids.extend(list(np.where(objectPresence[class_id])[0]))
             image_ids = list(set(image_ids))
 
-        print(class_ids)
-
         # Add classes
         for i in class_ids:
             self.add_class('ade20k', i, objectnames[i])

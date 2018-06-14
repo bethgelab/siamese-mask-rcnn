@@ -501,7 +501,7 @@ def find_correct_detections(class_gt_boxes, detected_boxes, threshold=0, verbose
                 
     return correct_ious
 
-def find_correct_segmentations(class_gt_masks, predicted_masks, class_gt_detections, predicted_detections, threshold=0.5, verbose=0, epsilon=0.0001):
+def find_correct_segmentations(class_gt_masks, predicted_masks, class_gt_detections, predicted_detections, threshold=0, verbose=0, epsilon=0.0001):
     detection_ious = find_correct_detections(class_gt_detections, predicted_detections, threshold=threshold, verbose=verbose)
 
     segmentation_ious = np.zeros_like(detection_ious)

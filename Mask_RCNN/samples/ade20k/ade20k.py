@@ -26,7 +26,8 @@ class ADE20KDataset(utils.Dataset):
         filenames_relative = [folder[0] + '/' + filename[0] for folder, filename in zip(index[1][0], index[0][0])]
         filenames          = [dataset_dir + '/' + '/'.join(f.split('/')[1:]) for f in filenames_relative]
         objectnames        = ['dummy_background'] + [f[0] for f in index[6][0]]
-        objectPresence     = index[4] > 0
+        objectPresence     = np.load('objectPresence.npy')
+        # objectPresence     = index[4] > 0
         # objectPresence     = (index[4] > 0) & (index[3] == 0) # subtract the object parts
 
         with open(dataset_dir + '/image_sizes.pkl', 'rb') as f:

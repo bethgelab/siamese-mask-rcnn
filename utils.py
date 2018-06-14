@@ -481,7 +481,7 @@ def display_siamese_instances(target, image, boxes, masks, class_ids,
 
 ### Evaluation ###
         
-def find_correct_detections(class_gt_boxes, detected_boxes, threshold=0.5, verbose=0):
+def find_correct_detections(class_gt_boxes, detected_boxes, threshold=0, verbose=0):
 
     correct_ious = np.zeros((class_gt_boxes.shape[0], detected_boxes.shape[0]))
     epsilon = 0.0001
@@ -494,7 +494,7 @@ def find_correct_detections(class_gt_boxes, detected_boxes, threshold=0.5, verbo
             intersection = dx*dy
             union = (gty2-gty1)*(gtx2-gtx1) + (pry2-pry1)*(prx2-prx1) - intersection
             IoU = intersection / (union + epsilon)
-            if IoU >= threshold:
+            if IoU > threshold:
                 if verbose !=0:
                     print(i, j, IoU)
                 correct_ious[i,j] = IoU

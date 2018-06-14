@@ -584,8 +584,8 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
 
         # Iterate over images
         for image_id in image_ids:
-            if verbose !=0:
-                print(image_id)
+#             if verbose !=0:
+            print(image_id)
             # Load GT data
             image, image_meta, gt_class_ids, gt_boxes, gt_masks = modellib.load_image_gt(\
                                                                                          dataset, 
@@ -622,9 +622,17 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
             for category in active_categories:
 
                 # Draw random target
-                target = siamese_utils.get_one_target(category, dataset, self.config)
+                try:
+                    target = siamese_utils.get_one_target(category, dataset, self.config)
+                except:
+                    print('error 1', category)
+                    continue
                 # Run siamese Mask R-CNN
-                results = self.detect([target], [image], verbose=verbose)
+                try:
+                    results = self.detect([target], [image], verbose=verbose)
+                except:
+                    print('error 2', category)
+                    continue
                 # Format detections
                 r = results[0]
 

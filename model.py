@@ -18,7 +18,7 @@ import keras.engine as KE
 import keras.models as KM
 import multiprocessing
 
-MASK_RCNN_MODEL_PATH = '/gpfs01/bethge/home/cmichaelis/tf-models/Mask_RCNN/'
+MASK_RCNN_MODEL_PATH = 'Mask_RCNN/'
 
 if MASK_RCNN_MODEL_PATH not in sys.path:
     sys.path.append(MASK_RCNN_MODEL_PATH)
@@ -565,7 +565,9 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
 
         # Initialize lists to collect results
         # Get number of classes including BG
-        nC = range(len(dataset.class_ids))
+        # nC = range(len(dataset.class_ids))
+        # nC = range(np.max(dataset.class_ids) + 1)
+        nC = range(3148 + 1)
         # Initialize lists for averaged results
         coco_precisions = []
         precisions = []
@@ -746,7 +748,8 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
 
         # Initialize lists to collect results
         # Get number of classes including BG
-        nC = range(len(dataset.class_ids))
+        # nC = range(len(dataset.class_ids))
+        nC = range(np.max(dataset.class_ids) + 1)
 
         # Initialize lists for averaged results
         coco_precisions = []

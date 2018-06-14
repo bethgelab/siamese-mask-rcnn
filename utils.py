@@ -12,7 +12,7 @@ import imgaug
 import matplotlib.pyplot as plt
 plt.rcParams['figure.figsize'] = (12.0, 6.0)
 
-MASK_RCNN_MODEL_PATH = '/gpfs01/bethge/home/cmichaelis/tf-models/Mask_RCNN/'
+MASK_RCNN_MODEL_PATH = 'Mask_RCNN/'
 
 if MASK_RCNN_MODEL_PATH not in sys.path:
     sys.path.append(MASK_RCNN_MODEL_PATH)

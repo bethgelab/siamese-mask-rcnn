@@ -539,29 +539,18 @@ def find_overlap_coordinates(gty1, gtx1, gty2, gtx2, pry1, prx1, pry2, prx2):
 
     return oy1, ox1, oy2, ox2
 
-def assign_detections(correct_ious, threshold=0.5, return_index=False):
+def assign_detections(correct_ious, threshold=0, return_index=False):
     # Greedy assignment from first to last gt instance (could be optimized!)
-    best_matches_iou = []
-    best_matches_index = []
-    for i in range(correct_ious.shape[0]):
-        if any(correct_ious[i,:] >= threshold):
-            best_match = np.max(correct_ious[i,:])
-            best_matches_iou.append(best_match)
-            index = np.argmax(correct_ious[i,:])
-            best_matches_index.append(index)
-            correct_ious[:,index] = 0
-            correct_ious[i,index] = best_match
-        else:
-            best_matches_iou.append(0)
-
-            # If IoU is zero just append -1 as the best matching index
-            # to mark this case and simplify the assign_segmentations
-            best_matches_index.append(-1)
+    iou_of_matches =np.zeros_like(correct_ious)
+    while any(np.reshape(correct_ious, [-1]) > threshold):
+        best_match = np.max(correct_ious)
+        index_0 = np.argmax(correct_ious) // correct_ious.shape[1]
+        index_1 = np.mod(np.argmax(correct_ious), correct_ious.shape[1])
+        correct_ious[index_0,:] = 0
+        correct_ious[:,index_1] = 0
+        iou_of_matches[index_0,index_1] = best_match
             
-    if return_index:
-        return best_matches_iou, best_matches_index
-    else:
-        return best_matches_iou
+    return iou_of_matches
 
 def assign_segmentations(correct_ious_segmentation, correct_ious_detection, threshold=0.5):
     _, best_matches_index = assign_detections(correct_ious_detection, threshold=threshold, return_index=True)

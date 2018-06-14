@@ -51,6 +51,8 @@ class ADE20KDataset(utils.Dataset):
             # All classes with existing instances
             class_ids = list(np.where(np.sum(objectPresence, 1) > 0)[0])
 
+        self.class_ids_with_holes = class_ids
+
         if class_ids:
             # Take images of corresponding classes
             image_ids = []
@@ -85,7 +87,7 @@ class ADE20KDataset(utils.Dataset):
         # of class IDs that correspond to each channel of the mask.
         object_mask, instance_mask, parts_object_mask, parts_instance_mask = loadADE20K(self.image_info[image_id]['path'])
 
-        for instance_id in np.unique(instance_mask):
+        for instance_id in np.unique(instance_mask)[1:]:
             instance_id_mask = (instance_mask == instance_id)
             if np.sum(instance_id_mask) < 1:
                 continue
@@ -95,7 +97,7 @@ class ADE20KDataset(utils.Dataset):
         if len(parts_object_mask) > 0:
             _, _, n_levels = parts_object_mask.shape
             for level in range(n_levels):
-                for instance_id in np.unique(parts_instance_mask[:,:,level]):
+                for instance_id in np.unique(parts_instance_mask[:,:,level])[1:]:
                     instance_id_mask = (parts_instance_mask[:,:,level] == instance_id)
                     if np.sum(instance_id_mask) < 1:
                         continue

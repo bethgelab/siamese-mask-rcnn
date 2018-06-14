@@ -45,7 +45,7 @@ class ADE20KDataset(utils.Dataset):
         objectPresence = objectPresence[:, idx]
         
         # Add dummy background class
-        objectPresence = np.concatenate([np.zeros((1, objectPresence.shape[1])), objectPresence])
+        # objectPresence = np.concatenate([np.zeros((1, objectPresence.shape[1])), objectPresence])
 
         if not class_ids:
             # All classes with existing instances
@@ -93,7 +93,7 @@ class ADE20KDataset(utils.Dataset):
             class_ids.append(int(np.median(object_mask[instance_id_mask])))
 
         if len(parts_object_mask) > 0:
-            _, _, n_levels = parts_obejects_mask.shape
+            _, _, n_levels = parts_object_mask.shape
             for level in range(n_levels):
                 for instance_id in np.unique(parts_instance_mask[:,:,level]):
                     instance_id_mask = (parts_instance_mask[:,:,level] == instance_id)
@@ -110,7 +110,7 @@ class ADE20KDataset(utils.Dataset):
             # Call super class to return an empty mask
             return super(ADE20KDataset, self).load_mask(image_id)
 
-def loadAde20K(filename):
+def loadADE20K(filename):
     """
     Python translation of the original MATLAB function.
 
@@ -118,7 +118,7 @@ def loadAde20K(filename):
         - Object class masks (n x m)
         - Object instance masks (n x m)
     """
-    # Full obeject masks
+    # Full object masks
     fileseg = filename.replace('.jpg', '_seg.png')
 
     seg = plt.imread(fileseg)

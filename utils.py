@@ -41,10 +41,11 @@ def get_one_target(category, dataset, config, augmentation=None):
                       use_mini_mask=config.USE_MINI_MASK)
     # print(random_image_id, category, target_class_ids)
 
-    try:
-        box_ind = np.random.choice(np.where(target_class_ids == category)[0])   
-    except ValueError:
-        return None
+    # try:
+    #     box_ind = np.random.choice(np.where(target_class_ids == category)[0])   
+    # except ValueError:
+    #     return None
+    box_ind = np.random.choice(np.where(target_class_ids == category)[0])   
     tb = target_boxes[box_ind,:]
     target = target_image[tb[0]:tb[2],tb[1]:tb[3],:]
     target, window, scale, padding, crop = utils.resize_image(

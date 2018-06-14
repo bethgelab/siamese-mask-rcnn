@@ -51,6 +51,8 @@ class ADE20KDataset(utils.Dataset):
             # All classes with existing instances
             class_ids = list(np.where(np.sum(objectPresence, 1) > 0)[0])
 
+        self.class_ids_with_holes = class_ids
+
         if class_ids:
             # Take images of corresponding classes
             image_ids = []

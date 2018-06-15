@@ -501,31 +501,39 @@ def find_correct_detections(class_gt_boxes, detected_boxes, threshold=0, verbose
                 
     return correct_ious
 
-def find_correct_segmentations(class_gt_masks, predicted_masks, class_gt_detections, predicted_detections, threshold=0, verbose=0, epsilon=0.0001):
-    detection_ious = find_correct_detections(class_gt_detections, predicted_detections, threshold=threshold, verbose=verbose)
+def find_correct_segmentations(class_gt_masks, predicted_masks, class_gt_detections, predicted_detections, assigned_detections=None,
+                               in_matching_boxes=False, threshold=0, verbose=0, epsilon=0.0001):
+    if in_matching_boxes:
+        assert assigned_detections is not None
 
-    segmentation_ious = np.zeros_like(detection_ious)
-    for i in range(class_gt_masks.shape[0]):
-        for j in range(predicted_masks.shape[0]):
-            if detection_ious[i,j] < threshold:
+    N_gt        = class_gt_masks.shape[0]
+    N_predicted = predicted_masks.shape[0]
+
+    segmentation_ious = np.zeros((N_gt, N_predicted))
+    for i in range(N_gt): 
+        for j in range(N_predicted):
+            if in_matching_boxes and assigned_detections[i, j] < epsilon:
                 continue
-            else:
-                gty1, gtx1, gty2, gtx2 = class_gt_detections[i,:]
-                pry1, prx1, pry2, prx2 = predicted_detections[j,:]
-                oy1, ox1, oy2, ox2 = find_overlap_coordinates(gty1, gtx1, gty2, gtx2, pry1, prx1, pry2, prx2)
 
-                predicted_mask = predicted_masks[j]
-                class_gt_mask = skt.resize(class_gt_masks[i], (gty2 - gty1, gtx2 - gtx1)) > 0.0
+            gty1, gtx1, gty2, gtx2 = class_gt_detections[i,:]
+            pry1, prx1, pry2, prx2 = predicted_detections[j,:]
+            oy1, ox1, oy2, ox2 = find_overlap_coordinates(gty1, gtx1, gty2, gtx2, pry1, prx1, pry2, prx2)
+            if ox1 >= ox2 or oy1 >= oy2:
+                continue
 
-                predicted_mask_overlap = predicted_mask[oy1 : oy2, ox1 : ox2]
-                class_gt_mask_overlap = class_gt_mask[(oy1 - gty1) : (oy2 - gty1), (ox1 - gtx1) : (ox2 - gtx1)] 
+            predicted_mask = predicted_masks[j]
+            class_gt_mask = skt.resize(class_gt_masks[i], (gty2 - gty1, gtx2 - gtx1)) > 0.0
 
-                intersection = np.sum(predicted_mask_overlap * class_gt_mask_overlap)
-                union = np.sum(predicted_mask) - np.sum(predicted_mask_overlap) + \
-                        np.sum(class_gt_mask) - np.sum(class_gt_mask_overlap) + \
-                        np.sum(np.clip(predicted_mask_overlap + class_gt_mask_overlap, 0, 1))
-                IoU = intersection / (union + epsilon)
+            predicted_mask_overlap = predicted_mask[oy1 : oy2, ox1 : ox2]
+            class_gt_mask_overlap = class_gt_mask[(oy1 - gty1) : (oy2 - gty1), (ox1 - gtx1) : (ox2 - gtx1)] 
 
+            intersection = np.sum(predicted_mask_overlap * class_gt_mask_overlap)
+            union = np.sum(predicted_mask) - np.sum(predicted_mask_overlap) + \
+                    np.sum(class_gt_mask) - np.sum(class_gt_mask_overlap) + \
+                    np.sum(np.clip(predicted_mask_overlap + class_gt_mask_overlap, 0, 1))
+            IoU = intersection / (union + epsilon)
+
+            if IoU > threshold:
                 segmentation_ious[i, j] = IoU
 
     return segmentation_ious

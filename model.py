@@ -551,7 +551,7 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
     
         # Currently only batch size 1 ist supported
         assert self.config.BATCH_SIZE == 1, "Batch size must be 1"
-        assert eval_type in ['detection', 'segmentation', 'segmnetation_of_detections']
+        assert eval_type in ['detection', 'segmentation', 'segmentation_of_detections']
         assert self.mode == 'inference', "Model has to be in inference mode"
 
         # Permute image order
@@ -636,6 +636,9 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
                     continue
                 # Format detections
                 r = results[0]
+                class_gt_segmentations = np.transpose(gt_masks, [2, 0, 1])[gt_class_ids == category]
+                predicted_segmentations = np.transpose(r['masks'], [2, 0, 1])
+                # print(class_gt_segmentations.shape, predicted_segmentations.shape)
 
                 # Select gt and detected boxes
                 class_gt_boxes = gt_boxes[gt_class_ids == category]
@@ -647,15 +650,14 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
                     # Select best matches
                     iou_of_matches = siamese_utils.assign_detections(detection_ious, threshold=0)
                 elif eval_type == 'segmentation':
-                    print("'segmentation' mode not yet implemented")
-                    # 1. get segmentation ious
-                    # 2. iou_of_matches = siamese_utils.assign_detections(segmentation_ious, threshold=0)
+                    segmentation_ious = siamese_utils.find_correct_segmentations(class_gt_segmentations, predicted_segmentations,
+                                                                                 class_gt_boxes, detected_boxes)
+                    iou_of_matches = siamese_utils.assign_detections(segmentation_ious, threshold=0)
                 elif eval_type == 'segmentation_of_detections':
-                    rint("'segmentation_of_detections' mode not yet implemented")
-                    # 1. iou_of_matches = siamese_utils.assign_detections(detection_ious, threshold=0)
-                    # 2. get segmentation ious
-                    # 3. change stuff below
-
+                    assigned_detections = siamese_utils.assign_detections(detection_ious, threshold=0)
+                    iou_of_matches = siamese_utils.find_correct_segmentations(class_gt_segmentations, predicted_segmentations,
+                                                                                 class_gt_boxes, detected_boxes,
+                                                                                 assigned_detections, in_matching_boxes=True)
                 # Get copunts
                 nI = class_gt_boxes.shape[0]
                 nP  = detected_boxes.shape[0]

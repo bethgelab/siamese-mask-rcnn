@@ -166,6 +166,7 @@ def siamese_data_generator(dataset, config, shuffle=True, augmentation=imgaug.au
             gt_class_ids = gt_class_ids[idx]
             gt_boxes = gt_boxes[idx,:]
             gt_masks = gt_masks[:,:,idx]
+            image_meta = image_meta[:14]
 #             print(gt_boxes.shape, gt_masks.shape)
 
             # RPN Targets

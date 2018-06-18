@@ -17,4 +17,4 @@ pottedplant: cactus; flower; flowers; leaf; leaf, leafage, foliage; plant; plant
 sheep: flock of sheep; sheep; sheep pen; sheeps
 sofa: miniature sofa; sofa bed; sofa, couch, lounge
 train: freight train; inflatable train; lock; railroad train; train, railroad train; training potty
-tv monitor: television receiver, television, television set, tv, tv set, idiot box, boob tube, telly, goggle box; monitor; monitor, monitoring device; monitors
+tv monitor: television receiver, television, television set, tv, tv set, idiot box, boob tube, telly, goggle box; monitor; monitor, monitoring device; monitors; screen, crt screen

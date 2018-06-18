@@ -48,4 +48,3 @@ baseball bat: baseball; bat
 wine glass: glass, drinking glass
 cell phone: cellular telephone, cellular phone, cellphone, cell, mobile phone; mobile phone
 hair drier: hair dryer
-

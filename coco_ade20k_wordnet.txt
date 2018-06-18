@@ -1,0 +1,45 @@
+truck: crane truck; truck crane; truck, motortruck; trucks; van
+traffic light: traffic light, traffic signal, stoplight
+fire hydrant: fireplug, fire hydrant, plug
+parking meter: parking meter
+bench: bench; exercise bench; lab bench; workbench
+elephant: elephant; hobby-elephant
+bear: bear; bear cutout
+backpack: backpack, back pack, knapsack, packsack, rucksack, haversack; backpacks
+umbrella: umbrella; umbrella rack; umbrella stand; umbrellas
+handbag: bag, handbag, pocketbook, purse; handbag
+tie: necktie; tie; ties
+suitcase: bag, traveling bag, travelling bag, grip, suitcase; baggage; travel bag
+skis: skis
+snowboard: snowboard; snowboard shape; snowboarder
+kite: kite
+baseball glove: baseball glove
+skateboard: skateboard
+surfboard: surfboard
+tennis racket: tennis racket
+cup: coffee cup; coffee cup; coffee cup rack; coffee cups; cup; cup maker; cups; paper cups; pencil cup; plastic cup; plastic cups; teacup; teacup
+fork: fork; forks; large fork; pitchfork
+knife: knife; knife display
+spoon: measuring spoons; slotted spoon; spoon; spoons
+bowl: bowl; bowls; fruit bowl; pet bowl; sugar bowl
+banana: bananas
+apple: apple; apples
+sandwich: sandwich
+orange: orange; oranges
+cake: patty, cake
+bed: bed; bed column; bed side; bed trolley; bedpost; beds; bedspread; cradle; dog bed; massage bed; seedbed; sofa bed; truckle bed; x-rays bed
+toilet: toilet set; toilet, can, commode, crapper, pot, potty, stool, throne; toilete kit
+laptop: laptop bag; laptop, laptop computer
+mouse: mouse; mouse stand; mouse, computer mouse; mousepad, mouse mat
+remote: remote control, remote
+keyboard: grand piano, grand; keyboard; piano, pianoforte, forte-piano
+microwave: microwave, microwave oven; microwave
+oven: microwave, microwave oven; oven; toaster oven; microwave
+toaster: toaster; toaster oven
+sink: dental sink; sink; sinks
+refrigerator: refrigerator, icebox
+book: book; book rack; book stand; bookcase; bookend; bookends; booklet, brochure, folder, leaflet, pamphlet; booklet, brochure, folder, leaflet, pamphlet; bookstall; notbook; notebook; notebook
+clock: alarm clock; alarm clock; clock; clock face; clock radio; digital clock; grandfather clock; wall clock; alarm clock, alarm; alarm clock, alarm
+vase: steam vase; vase; vases
+scissors: scissors
+toothbrush: toothbrush

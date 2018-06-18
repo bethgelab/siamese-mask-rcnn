@@ -20,7 +20,7 @@ class ADE20KConfig(Config):
     NUM_CLASSES = 1 + 2693
 
 class ADE20KDataset(utils.Dataset):
-    def load_ade20k(self, dataset_dir, subset, class_ids=None, class_map=None):
+    def load_ade20k(self, dataset_dir, subset, class_map=None):
         index = scipy.io.loadmat(dataset_dir + '/index_ade20k.mat')['index'][0][0]
 
         filenames_relative = [folder[0] + '/' + filename[0] for folder, filename in zip(index[1][0], index[0][0])]
@@ -47,9 +47,11 @@ class ADE20KDataset(utils.Dataset):
         # Add dummy background class
         # objectPresence = np.concatenate([np.zeros((1, objectPresence.shape[1])), objectPresence])
 
-        if not class_ids:
+        if len(self.active_classes) == 0:
             # All classes with existing instances
             class_ids = list(np.where(np.sum(objectPresence, 1) > 0)[0])
+        else:
+            class_ids = self.active_classes
 
         self.class_ids_with_holes = class_ids
 

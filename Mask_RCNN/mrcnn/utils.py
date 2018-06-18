@@ -256,6 +256,10 @@ class Dataset(object):
         # Background is always the first class
         self.class_info = [{"source": "", "id": 0, "name": "BG"}]
         self.source_class_ids = {}
+        self.active_classes = []
+
+    def set_active_classes(self, active_classes):
+        self.active_classes = active_classes
 
     def add_class(self, source, class_id, class_name):
         assert "." not in source, "Source name cannot contain a dot"

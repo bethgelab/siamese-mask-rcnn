@@ -19,7 +19,7 @@ class PascalVOCConfig(Config):
     NAME = 'PascalVOC'
 
 class PascalVOCDataset(utils.Dataset):
-    def load_pascal_voc(self, dataset_dir, subset, class_ids=None, class_map=None):
+    def load_pascal_voc(self, dataset_dir, subset, class_map=None):
         metadata = scipy.io.loadmat(dataset_dir + '/' + '{}_metadata.mat'.format(subset))['metadata'][0][0]
 
         filenames = [f[0] for f in metadata[0][0]]
@@ -52,9 +52,11 @@ class PascalVOCDataset(utils.Dataset):
         classes_mapping = {(i + 1) : c for i, c in enumerate(pascal_voc_classes)}
         classes_mapping_inverse = {c : i for i, c in classes_mapping.items()}
 
-        if not class_ids:
+        if not len(self.active_classes) == 0:
             # All classes with existing instances
             class_ids = list(classes_mapping.keys())
+        else:
+            class_ids = self.active_classes
 
         # Take images of corresponding classes
         image_ids = []

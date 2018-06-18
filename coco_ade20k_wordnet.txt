@@ -43,3 +43,9 @@ clock: alarm clock; alarm clock; clock; clock face; clock radio; digital clock; 
 vase: steam vase; vase; vases
 scissors: scissors
 toothbrush: toothbrush
+sports ball: ball; ball rack; ball stands; ball storage; basketball; football; golf ball; pool ball; soccer ball
+baseball bat: baseball; bat
+wine glass: glass, drinking glass
+cell phone: cellular telephone, cellular phone, cellphone, cell, mobile phone; mobile phone
+hair drier: hair dryer
+

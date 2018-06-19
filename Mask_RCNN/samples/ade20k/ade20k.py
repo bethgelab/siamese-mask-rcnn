@@ -51,26 +51,25 @@ class ADE20KDataset(utils.Dataset):
             # All classes with existing instances
             class_ids = list(np.where(np.sum(objectPresence, 1) > 0)[0])
         else:
-            class_ids = self.active_classes
+            class_ids = list(np.intersect1d(self.active_classes, np.where(np.sum(objectPresence, 1) > 0)[0]))
 
         self.class_ids_with_holes = class_ids
 
-        if class_ids:
-            # Take images of corresponding classes
-            image_ids = []
-            for class_id in class_ids:
-                image_ids.extend(list(np.where(objectPresence[class_id])[0]))
-            image_ids = list(set(image_ids))
+        # Take images of corresponding classes
+        image_ids = []
+        for class_id in class_ids:
+            image_ids.extend(list(np.where(objectPresence[class_id])[0]))
+        image_ids = list(set(image_ids))
 
         # Add classes
         for i in class_ids:
             self.add_class('ade20k', i, objectnames[i])
 
         # Build annotations (list of classes for all images)
-        annotations = []
+        annotations = {}
         for i in image_ids:
             image_classes = np.unique(np.where(objectPresence[:,i] > 0)[0])
-            annotations.append({'class_index': image_classes})
+            annotations[i] = {'class_index': image_classes}
 
         # Add images
         for i in image_ids:

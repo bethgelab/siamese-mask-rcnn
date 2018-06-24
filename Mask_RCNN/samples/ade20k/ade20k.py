@@ -20,7 +20,7 @@ class ADE20KConfig(Config):
     NUM_CLASSES = 1 + 2693
 
 class ADE20KDataset(utils.Dataset):
-    def load_ade20k(self, dataset_dir, subset, class_ids=None, class_map=None):
+    def load_ade20k(self, dataset_dir, subset, class_map=None):
         index = scipy.io.loadmat(dataset_dir + '/index_ade20k.mat')['index'][0][0]
 
         filenames_relative = [folder[0] + '/' + filename[0] for folder, filename in zip(index[1][0], index[0][0])]
@@ -47,28 +47,29 @@ class ADE20KDataset(utils.Dataset):
         # Add dummy background class
         # objectPresence = np.concatenate([np.zeros((1, objectPresence.shape[1])), objectPresence])
 
-        if not class_ids:
+        if len(self.active_classes) == 0:
             # All classes with existing instances
             class_ids = list(np.where(np.sum(objectPresence, 1) > 0)[0])
+        else:
+            class_ids = list(np.intersect1d(self.active_classes, np.where(np.sum(objectPresence, 1) > 0)[0]))
 
         self.class_ids_with_holes = class_ids
 
-        if class_ids:
-            # Take images of corresponding classes
-            image_ids = []
-            for class_id in class_ids:
-                image_ids.extend(list(np.where(objectPresence[class_id])[0]))
-            image_ids = list(set(image_ids))
+        # Take images of corresponding classes
+        image_ids = []
+        for class_id in class_ids:
+            image_ids.extend(list(np.where(objectPresence[class_id])[0]))
+        image_ids = list(set(image_ids))
 
         # Add classes
         for i in class_ids:
             self.add_class('ade20k', i, objectnames[i])
 
         # Build annotations (list of classes for all images)
-        annotations = []
+        annotations = {}
         for i in image_ids:
             image_classes = np.unique(np.where(objectPresence[:,i] > 0)[0])
-            annotations.append({'class_index': image_classes})
+            annotations[i] = {'class_index': image_classes}
 
         # Add images
         for i in image_ids:

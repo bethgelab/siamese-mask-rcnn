@@ -256,6 +256,16 @@ class Dataset(object):
         # Background is always the first class
         self.class_info = [{"source": "", "id": 0, "name": "BG"}]
         self.source_class_ids = {}
+        self.active_classes = []
+
+    def set_active_classes(self, active_classes):
+        """active_classes could be an array of integers (class ids), or
+           a filename (string) containing these class ids (one number per line)"""
+        if type(active_classes) == str:
+            with open(active_classes, 'r') as f:
+                content = f.readlines()
+            active_classes = [int(x.strip()) for x in content]
+        self.active_classes = list(active_classes)
 
     def add_class(self, source, class_id, class_name):
         assert "." not in source, "Source name cannot contain a dot"

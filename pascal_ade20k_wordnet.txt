@@ -6,7 +6,8 @@ bottle: bottle; bottle pack; dropper bottle; feeding bottle; gas bottle; seltzer
 bus: bus, autobus, coach, charabanc, double-decker, jitney, motorbus, motorcoach, omnibus, passenger vehicle; buses; streetcar, tram, tramcar, trolley, trolley car
 car: airport cart; car, auto, automobile, machine, motorcar; caravan; caravans; carport; carriage; cart; carts; food cart; golf cart; motorbike cart; roller coaster cars
 cat: cat
-chair: armchair; baby chair; chair; chair desk; chairs desk; deck chair, beach chair; deck chairs; dental chair; dental swivel chair; desk chair; folding chair; folding chairs; hairdresser chair; hairdressers chair; miniature chair; racking chair; reclining chair; rocking chair; small chair; steel chair; swivel chair; washbasin chair; wheelchair
+chair: armchair; baby chair; chair; chair desk; chairs desk; deck chair, beach chair; deck chairs; dental chair; dental swivel chair; desk chair; folding chair; folding chairs; hairdresser chair; hairdressers chair; miniature chair; racking chair; reclining chair; rocking chair; rocking chair, rocker; small chair; steel chair; swivel chair; washbasin chair; wheelchair
+cow: cow, moo-cow; cows
 diningtable: air hockey table; altar, communion table, Lord's table; autopsy table; card table; checkers table; coffee table, cocktail table; console table, console; control table; craps table; cut table; desk; drawing table; drawing tables; dressing table; folding table; football table; game table; games table; gaming table; hockey table; instrument table; instruments table; judge table; massage table; music control table; operation table; pool table, billiard table, snooker table; roulette table; secretary table; small table; table; table football; table tennis; tables; tennis table; trolley table; worktable, work table; altar, communion table, lord's table
 dog: dog, domestic dog, Canis familiaris; dog, domestic dog, canis familiaris
 horse: carousel horse; hobby-horse; horse carousel; horse, Equus caballus; rocking horse; horse, equus caballus
@@ -16,4 +17,4 @@ pottedplant: cactus; flower; flowers; leaf; leaf, leafage, foliage; plant; plant
 sheep: flock of sheep; sheep; sheep pen; sheeps
 sofa: miniature sofa; sofa bed; sofa, couch, lounge
 train: freight train; inflatable train; lock; railroad train; train, railroad train; training potty
-tv monitor: television receiver, television, television set, tv, tv set, idiot box, boob tube, telly, goggle box; monitor; monitor, monitoring device; monitors
+tv monitor: television receiver, television, television set, tv, tv set, idiot box, boob tube, telly, goggle box; monitor; monitor, monitoring device; monitors; screen, crt screen

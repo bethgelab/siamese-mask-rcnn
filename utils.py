@@ -486,7 +486,8 @@ def display_siamese_instances2(target_list, image_list, boxes_list, masks_list, 
                       scores_list=None, title="",
                       figsize=(16, 16), ax=None,
                       show_mask=True, show_bbox=True,
-                      colors=None, captions=None):
+                      colors=None, captions=None,
+                      target_shift=10):
     """
     boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image coordinates.
     masks: [height, width, num_instances]
@@ -520,7 +521,7 @@ def display_siamese_instances2(target_list, image_list, boxes_list, masks_list, 
         from matplotlib.gridspec import GridSpec
         # Use GridSpec to show target smaller than image
         fig = plt.figure(figsize=figsize)
-        gs = GridSpec(M, M)
+        gs = GridSpec(M, M, hspace=0.02, wspace=0.02, left=0, right=1, bottom=0, top=1)
         auto_show = True
 
     index = 0
@@ -600,8 +601,8 @@ def display_siamese_instances2(target_list, image_list, boxes_list, masks_list, 
             ax.imshow(masked_image.astype(np.uint8))
 
             target_height, target_width = target.shape[:2]
-            ax.imshow(target, extent=[2, 2 + target_width * 2, height - 2, height - 2 - target_height * 2], zorder=9)
-            rect = visualize.patches.Rectangle((2, height - 2), target_width * 2, -target_height * 2, linewidth=2, edgecolor='white', facecolor='none', zorder=10)
+            ax.imshow(target, extent=[target_shift, target_shift + target_width * 2, height - target_shift, height - target_shift - target_height * 2], zorder=9)
+            rect = visualize.patches.Rectangle((target_shift, height - target_shift), target_width * 2, -target_height * 2, linewidth=2, edgecolor='red', facecolor='none', zorder=10)
             ax.add_patch(rect)
             index = index + 1
 

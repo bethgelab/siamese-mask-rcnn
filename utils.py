@@ -143,7 +143,7 @@ def siamese_data_generator(dataset, config, shuffle=True, augmentation=imgaug.au
             # Use only active classes
             active_categories = []
             for c in categories:
-                if any(c == config.ACTIVE_CLASSES):
+                if any(c == dataset.ACTIVE_CLASSES):
                     active_categories.append(c)
             
             # Skiop image if it contains no instance of any active class    

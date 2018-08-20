@@ -21,6 +21,7 @@ class ADE20KConfig(Config):
 
 class ADE20KDataset(utils.Dataset):
     def load_ade20k(self, dataset_dir, subset, class_map=None):
+        self.class_map = class_map
         index = scipy.io.loadmat(dataset_dir + '/index_ade20k.mat')['index'][0][0]
 
         filenames_relative = [folder[0] + '/' + filename[0] for folder, filename in zip(index[1][0], index[0][0])]
@@ -66,10 +67,32 @@ class ADE20KDataset(utils.Dataset):
             self.add_class('ade20k', i, objectnames[i])
 
         # Build annotations (list of classes for all images)
-        annotations = {}
+        self.annotations = {}
         for i in image_ids:
             image_classes = np.unique(np.where(objectPresence[:,i] > 0)[0])
-            annotations[i] = {'class_index': image_classes}
+            self.annotations[i] = {'class_index': image_classes}
+
+        def invert_class_map(class_map):
+            inverse_class_map = {}
+            for k, v in class_map.items():
+                for c in v:
+                    inverse_class_map[c] = k
+            return inverse_class_map
+
+        if self.class_map is not None:
+            self.inverse_class_map = invert_class_map(self.class_map)
+            mapped_classes    = sum(list(class_map.values()), [])
+            mapped_class_ids  = list(filter(lambda x: x in mapped_classes, class_ids))
+            mapped_image_ids  = [i for i in image_ids if len(np.intersect1d(self.annotations[i]['class_index'], mapped_class_ids)) > 0]
+
+            mapped_annotations = {}
+            for i in mapped_image_ids:
+                mapped_image_classes = [self.inverse_class_map[c] for c in self.annotations[i]['class_index'] if c in mapped_classes]
+                mapped_annotations[i] = {'class_index': mapped_image_classes}
+            
+            class_ids = [c for c in class_map.keys() if len(np.intersect1d(class_map[c], mapped_class_ids)) > 0]
+            image_ids = mapped_image_ids
+            self.annotations = mapped_annotations
 
         # Add images
         for i in image_ids:
@@ -78,9 +101,16 @@ class ADE20KDataset(utils.Dataset):
                     path=filenames[i],
                     width=image_sizes[filenames_relative[i]][0],
                     height=image_sizes[filenames_relative[i]][1],
-                    annotations=annotations[i])
+                    annotations=self.annotations[i])
 
     def load_mask(self, image_id):
+        def cluster_classes(mask, class_ids, class_map, inverse_class_map):
+            objects_to_keep = [i for i, c in enumerate(class_ids) if c in inverse_class_map]
+            mask = mask[:,:,objects_to_keep]
+            class_ids = [inverse_class_map[class_ids[i]] for i in objects_to_keep]
+            class_ids = np.array(class_ids, dtype=np.int32)
+            return mask, class_ids
+
         instance_masks = []
         class_ids = []
 
@@ -108,6 +138,8 @@ class ADE20KDataset(utils.Dataset):
         if class_ids:
             mask = np.stack(instance_masks, axis=2).astype(np.bool)
             class_ids = np.array(class_ids, dtype=np.int32)
+            if self.class_map is not None:
+                mask, class_ids = cluster_classes(mask, class_ids, self.class_map, self.inverse_class_map)
             return mask, class_ids
         else:
             # Call super class to return an empty mask

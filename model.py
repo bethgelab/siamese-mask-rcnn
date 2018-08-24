@@ -283,7 +283,7 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
         # CHANGE: Use weightshared FPN model for image and target
         # Create FPN Model
         resnet = build_resnet_model(self.config)
-        fpn = build_fpn_model()
+        fpn = build_fpn_model(feature_maps=self.config.FPN_FEATUREMAPS)
         # Create Image FP
         _, IC2, IC3, IC4, IC5 = resnet(input_image)
         IP2, IP3, IP4, IP5, IP6 = fpn([IC2, IC3, IC4, IC5])
@@ -315,7 +315,7 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
             anchors = input_anchors
 
         # RPN Model
-        # CHANGE: Set number of filters to 256 [128 original + 128 L1]
+        # CHANGE: Set number of filters to [3*self.config.FPN_FEATUREMAPS//2]
         rpn = modellib.build_rpn_model(config.RPN_ANCHOR_STRIDE,
                               len(config.RPN_ANCHOR_RATIOS), 3*self.config.FPN_FEATUREMAPS//2)
         # Loop through pyramid layers

@@ -23,6 +23,8 @@ from samples.pascal_voc import pascal_voc
 from mrcnn import utils
 from mrcnn import model as modellib
 from mrcnn import visualize  
+
+from pycocotools.cocoeval import COCOeval
     
 import warnings
 warnings.filterwarnings("ignore")
@@ -380,6 +382,113 @@ class IndexedPascalVOCDataset(pascal_voc.PascalVOCDataset):
 
         return category_image_index
 
+    
+### Evaluation ###
+
+def evaluate_coco(model, dataset, coco_object, eval_type="bbox", limit=0, image_ids=None):
+    """Runs official COCO evaluation.
+    dataset: A Dataset object with valiadtion data
+    eval_type: "bbox" or "segm" for bounding box or segmentation evaluation
+    limit: if not 0, it's the number of images to use for evaluation
+    """
+    # Pick COCO images from the dataset
+    image_ids = image_ids or dataset.image_ids
+
+    # Limit to a subset
+    if limit:
+        image_ids = image_ids[:limit]
+
+    # Get corresponding COCO image IDs.
+    coco_image_ids = [dataset.image_info[id]["id"] for id in image_ids]
+
+    t_prediction = 0
+    t_start = time.time()
+
+    results = []
+    for i, image_id in enumerate(image_ids):
+        
+        # Load GT data
+        _, _, gt_class_ids, _, _ = modellib.load_image_gt(dataset, model.config, image_id, augmentation=False, use_mini_mask=model.config.USE_MINI_MASK)
+
+        # BOILERPLATE: Code duplicated in siamese_data_loader
+
+        # Skip images that have no instances. This can happen in cases
+        # where we train on a subset of classes and the image doesn't
+        # have any of the classes we care about.
+        if not np.any(gt_class_ids > 0):
+            continue
+
+        # Use only positive class_ids
+        categories = np.unique(gt_class_ids)
+        _idx = categories > 0
+        categories = categories[_idx]
+        # Use only active classes
+        active_categories = []
+        for c in categories:
+            if any(c == dataset.ACTIVE_CLASSES):
+                active_categories.append(c)
+
+        # Skiop image if it contains no instance of any active class    
+        if not np.any(np.array(active_categories) > 0):
+            continue
+
+        # END BOILERPLATE
+
+        # Evaluate for every category individually
+        for category in active_categories:
+            
+            # Load image
+            image = dataset.load_image(image_id)
+
+            # Draw random target
+            try:
+                target = get_one_target(category, dataset, model.config)
+            except:
+                print('error 1', category)
+                continue
+            # Run detection
+            t = time.time()
+            try:
+                r = model.detect([target], [image], verbose=0)[0]
+            except:
+                print('error 2', category)
+                continue
+            t_prediction += (time.time() - t)
+        
+            
+            # Format detections
+            r["class_ids"] = np.array([category for i in range(r["class_ids"].shape[0])])
+            
+            # Threshold results
+#             active_rois = r["scores"] > model.config.DETECTION_SCORE_THRESHOLD
+#             r["class_ids"] = r["class_ids"][active_rois]
+#             r["masks"] = r["masks"][:,:,active_rois]
+#             r["rois"] = r["rois"][active_rois,:]
+#             r["scores"] = r["scores"][active_rois]
+
+            # Convert results to COCO format
+            # Cast masks to uint8 because COCO tools errors out on bool
+            image_results = coco.build_coco_results(dataset, coco_image_ids[i:i + 1],
+                                               r["rois"], r["class_ids"],
+                                               r["scores"],
+                                               r["masks"].astype(np.uint8))
+            results.extend(image_results)
+    
+    # Load results. This modifies results with additional attributes.
+    coco_results = coco_object.loadRes(results)
+
+    # Evaluate
+    cocoEval = COCOeval(coco_object, coco_results, eval_type)
+    cocoEval.params.imgIds = coco_image_ids
+    cocoEval.evaluate()
+    cocoEval.accumulate()
+    cocoEval.summarize()
+
+    print("Prediction time: {}. Average {}/image".format(
+        t_prediction, t_prediction / len(image_ids)))
+    print("Total time: ", time.time() - t_start)
+    
+    
 ### Visualization ###
 
 def display_siamese_instances(target, image, boxes, masks, class_ids,

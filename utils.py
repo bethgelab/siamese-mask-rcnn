@@ -31,7 +31,7 @@ warnings.filterwarnings("ignore")
     
 ### Data Generator ###
     
-def get_one_target(category, dataset, config, augmentation=None, return_all=False):
+def get_one_target(category, dataset, config, augmentation=None, return_all=False, return_original_size=False):
 
     # Get index with corresponding images for each category
     category_image_index = dataset.category_image_index
@@ -50,6 +50,7 @@ def get_one_target(category, dataset, config, augmentation=None, return_all=Fals
     box_ind = np.random.choice(np.where(target_class_ids == category)[0])   
     tb = target_boxes[box_ind,:]
     target = target_image[tb[0]:tb[2],tb[1]:tb[3],:]
+    original_size = target.shape
     target, window, scale, padding, crop = utils.resize_image(
         target,
         min_dim=config.TARGET_MIN_DIM,
@@ -59,6 +60,8 @@ def get_one_target(category, dataset, config, augmentation=None, return_all=Fals
     
     if return_all:
         return target, window, scale, padding, crop
+    elif return_original_size:
+        return target, original_size
     else:
         return target
 

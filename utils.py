@@ -31,7 +31,7 @@ warnings.filterwarnings("ignore")
     
 ### Data Generator ###
     
-def get_one_target(category, dataset, config, augmentation=None, target_size_limit=None, max_attempts=10, return_all=False, return_original_size=False):
+def get_one_target(category, dataset, config, augmentation=None, target_size_limit=0, max_attempts=10, return_all=False, return_original_size=False):
 
     n_attempts = 0
     while True:
@@ -61,7 +61,7 @@ def get_one_target(category, dataset, config, augmentation=None, target_size_lim
             mode=config.IMAGE_RESIZE_MODE) #Same output format as the image
 
         n_attempts = n_attempts + 1
-        if (target_size_limit is None) or (max(original_size[:2]) >= target_size_limit) or (n_attempts >= max_attempts):
+        if (min(original_size[:2]) >= target_size_limit) or (n_attempts >= max_attempts):
             break
     
     if return_all:

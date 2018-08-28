@@ -1,4 +1,5 @@
 import os
+import time
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
@@ -29,14 +30,19 @@ def run_insatances_selection(dataset, config, save_folder):
         _idx = categories > 0
         categories = categories[_idx]
         
+        image_error = False
+
         for category in categories:
             while True:
-                # try:
-                #     target, target_size = siamese_utils.get_one_target(category, dataset, config, return_original_size=True)
-                # except:
-                #     print('Error extracting target. Imade ID {}, category {}'.format(image_id, category))
+                try:
+                    target, target_size = siamese_utils.get_one_target(category, dataset, config, return_original_size=True)
+                except:
+                    print('Error extracting target. Imade ID {}, category {}'.format(image_id, category))
+                    image_error = True
+
+                if image_error:
+                    break
                     
-                target, target_size = siamese_utils.get_one_target(category, dataset, config, return_original_size=True)
                 if max(target_size[:2]) < 20:
                     continue
 
@@ -73,5 +79,6 @@ def run_insatances_selection(dataset, config, save_folder):
                 if target_chosen:
                     break
                     
-        with open(save_filename, 'wb') as f:
-            pickle.dump(dataset_instances, f)
+        if not image_error:
+            with open(save_filename, 'wb') as f:
+                pickle.dump(dataset_instances, f)

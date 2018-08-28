@@ -12,9 +12,9 @@ def run_insatances_selection(dataset, config, save_folder):
     plt.figure(figsize=(10, 5))
 
     for i, image_id in enumerate(image_ids):
-        coco_image_id = dataset.image_info[image_id]["id"]
+        dataset_image_id = dataset.image_info[image_id]["id"]
         
-        save_filename = os.path.join(save_folder, '{}.pkl'.format(coco_image_id))
+        save_filename = os.path.join(save_folder, '{}.pkl'.format(dataset_image_id))
         if os.path.isfile(save_filename):
             continue
         
@@ -62,7 +62,7 @@ def run_insatances_selection(dataset, config, save_folder):
                         display.clear_output()
                         break
                     elif user_input == 'y':
-                        print('Accepted. Imade ID {}, category {}'.format(coco_image_id, category))
+                        print('Accepted. Imade ID {}, category {}'.format(dataset_image_id, category))
                         dataset_instances[category] = target
                         target_chosen = True
                         display.clear_output()

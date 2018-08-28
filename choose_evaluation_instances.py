@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 import utils as siamese_utils
 from IPython import display
 
-def run_insatances_selection(dataset, config, save_folder):
+def run_insatances_selection(dataset, config, save_folder, target_size_limit=20):
     image_ids = dataset.image_ids
+    image_ids = np.random.permutation(image_ids)
 
     plt.figure(figsize=(10, 5))
 
@@ -35,7 +36,7 @@ def run_insatances_selection(dataset, config, save_folder):
         for category in categories:
             while True:
                 try:
-                    target, target_size = siamese_utils.get_one_target(category, dataset, config, return_original_size=True)
+                    target = siamese_utils.get_one_target(category, dataset, config, target_size_limit=target_size_limit)
                 except:
                     print('Error extracting target. Imade ID {}, category {}'.format(image_id, category))
                     image_error = True
@@ -43,9 +44,6 @@ def run_insatances_selection(dataset, config, save_folder):
                 if image_error:
                     break
                     
-                if max(target_size[:2]) < 20:
-                    continue
-
                 plt.subplot(1,2,1)
                 plt.imshow(target)
                 plt.title(dataset.class_names[category], fontsize=18)

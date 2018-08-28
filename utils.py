@@ -31,32 +31,38 @@ warnings.filterwarnings("ignore")
     
 ### Data Generator ###
     
-def get_one_target(category, dataset, config, augmentation=None, return_all=False, return_original_size=False):
+def get_one_target(category, dataset, config, augmentation=None, target_size_limit=None, max_attempts=10, return_all=False, return_original_size=False):
 
-    # Get index with corresponding images for each category
-    category_image_index = dataset.category_image_index
-    # Draw a random image
-    random_image_id = np.random.choice(category_image_index[category])
-    # Load image    
-    target_image, target_image_meta, target_class_ids, target_boxes, target_masks = \
-        modellib.load_image_gt(dataset, config, random_image_id, augmentation=augmentation,
-                      use_mini_mask=config.USE_MINI_MASK)
-    # print(random_image_id, category, target_class_ids)
+    n_attempts = 0
+    while True:
+        # Get index with corresponding images for each category
+        category_image_index = dataset.category_image_index
+        # Draw a random image
+        random_image_id = np.random.choice(category_image_index[category])
+        # Load image    
+        target_image, target_image_meta, target_class_ids, target_boxes, target_masks = \
+            modellib.load_image_gt(dataset, config, random_image_id, augmentation=augmentation,
+                          use_mini_mask=config.USE_MINI_MASK)
+        # print(random_image_id, category, target_class_ids)
 
-    # try:
-    #     box_ind = np.random.choice(np.where(target_class_ids == category)[0])   
-    # except ValueError:
-    #     return None
-    box_ind = np.random.choice(np.where(target_class_ids == category)[0])   
-    tb = target_boxes[box_ind,:]
-    target = target_image[tb[0]:tb[2],tb[1]:tb[3],:]
-    original_size = target.shape
-    target, window, scale, padding, crop = utils.resize_image(
-        target,
-        min_dim=config.TARGET_MIN_DIM,
-        min_scale=config.IMAGE_MIN_SCALE, #Same scaling as the image
-        max_dim=config.TARGET_MAX_DIM,
-        mode=config.IMAGE_RESIZE_MODE) #Same output format as the image
+        # try:
+        #     box_ind = np.random.choice(np.where(target_class_ids == category)[0])   
+        # except ValueError:
+        #     return None
+        box_ind = np.random.choice(np.where(target_class_ids == category)[0])   
+        tb = target_boxes[box_ind,:]
+        target = target_image[tb[0]:tb[2],tb[1]:tb[3],:]
+        original_size = target.shape
+        target, window, scale, padding, crop = utils.resize_image(
+            target,
+            min_dim=config.TARGET_MIN_DIM,
+            min_scale=config.IMAGE_MIN_SCALE, #Same scaling as the image
+            max_dim=config.TARGET_MAX_DIM,
+            mode=config.IMAGE_RESIZE_MODE) #Same output format as the image
+
+        n_attempts = n_attempts + 1
+        if (target_size_limit is None) or (max(original_size[:2]) >= target_size_limit) or (n_attempts >= max_attempts):
+            break
     
     if return_all:
         return target, window, scale, padding, crop

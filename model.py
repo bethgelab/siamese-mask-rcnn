@@ -1,6 +1,7 @@
 # Simaese Mask R-CNN Model
 
 import tensorflow as tf
+import glob
 import sys
 import os
 import re
@@ -716,6 +717,55 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
             weights_path = '/gpfs01/bethge/home/cmichaelis/projects/2018-03_Siamese_Mask_RCNN/logs/imagenet20180520T2051/mask_rcnn_imagenet_0784.h5'
             
         return weights_path
+    
+    def load_imagenet_weights(self):
+        print('initializing from imagenet weights ...')
+        weights_path = self.get_imagenet_weights(pretraining='imagenet-1k')
+        self.load_weights(weights_path, by_name=True)
+        self.set_log_dir()
+    
+    def load_checkpoint(self, weights_path, training_schedule=None):
+        print('loading', weights_path, '...')
+        
+        layer_regex = {
+            # all layers but the backbone
+            "heads": r"(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
+            # region proposal network
+            "rpn": r"(rpn\_.*)|(fpn\_.*)",
+            # From a specific Resnet stage and up
+            "2+": r"(res2.*)|(bn2.*)|(res3.*)|(bn3.*)|(res4.*)|(bn4.*)|(res5.*)|(bn5.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
+            "3+": r"(res3.*)|(bn3.*)|(res4.*)|(bn4.*)|(res5.*)|(bn5.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
+            "4+": r"(res4.*)|(bn4.*)|(res5.*)|(bn5.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
+            "5+": r"(res5.*)|(bn5.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
+            # All layers
+            "all": ".*",
+        }
+        
+        # set layers trainable for resnet weight loading
+        epoch_index = int(weights_path[-7:-3])
+        if training_schedule is not None:
+            # get correct schedule period
+            schedule_index = min([key for key in training_schedule.keys() if epoch_index <= key])
+            self.set_trainable(layer_regex[training_schedule[schedule_index]["layers"]])
+        else:
+            self.set_trainable(".*")
+        # load weights            
+        self.load_weights(weights_path, by_name=True)
+        self.epoch = epoch_index
+    
+    def get_latest_checkpoint(self):
+        os.path.exists(os.path.join(self.log_dir, "siamese_mrcnn_0001.h5"))
+        list_of_files = glob.glob(os.path.join(self.log_dir,'*.h5')) # * means all if need specific format then *.csv
+        latest_file = max(list_of_files, key=os.path.getmtime)
+        
+        return latest_file
+    
+    def load_latest_checkpoint(self, training_schedule=None):
+        # TODO: Add custom training schedules as ordered dicts
+        weights_path = self.get_latest_checkpoint()
+        self.load_checkpoint(weights_path, training_schedule=training_schedule)
+        
+        
     
     def evaluate_dataset(self, dataset, eval_type='detection', max_images=None, verbose=0):
     

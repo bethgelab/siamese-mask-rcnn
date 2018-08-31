@@ -394,12 +394,135 @@ class IndexedPascalVOCDataset(pascal_voc.PascalVOCDataset):
     
 ### Evaluation ###
 
-def evaluate_coco(model, dataset, coco_object, eval_type="bbox", limit=0, image_ids=None):
+def build_pascal_results(dataset, image_ids, rois, class_ids, scores, masks):
+    """Arrange resutls to match COCO specs in http://cocodataset.org/#format
+    """
+    # If no results, return an empty list
+    if rois is None:
+        return []
+
+    results = []
+    for image_id in image_ids:
+        # Loop through detections
+        for i in range(rois.shape[0]):
+            class_id = class_ids[i]
+            score = scores[i]
+            bbox = np.around(rois[i], 1)
+            mask = masks[:, :, i]
+
+            result = {
+                "image_id": image_id,
+                "category_id": class_id,
+                "bbox": [bbox[1], bbox[0], bbox[3] - bbox[1], bbox[2] - bbox[0]],
+                "score": score,
+                "segmentation": coco.maskUtils.encode(np.asfortranarray(mask))
+            }
+            results.append(result)
+    return results
+
+
+
+class customCOCOeval(COCOeval):
+    
+    def summarize(self, class_index=None):
+        '''
+        Compute and display summary metrics for evaluation results.
+        Note this functin can *only* be applied on the default parameter setting
+        '''
+        def _summarize( ap=1, iouThr=None, areaRng='all', maxDets=100 ):
+            p = self.params
+            iStr = ' {:<18} {} @[ IoU={:<9} | area={:>6s} | maxDets={:>3d} ] = {:0.3f}'
+            titleStr = 'Average Precision' if ap == 1 else 'Average Recall'
+            typeStr = '(AP)' if ap==1 else '(AR)'
+            iouStr = '{:0.2f}:{:0.2f}'.format(p.iouThrs[0], p.iouThrs[-1]) \
+                if iouThr is None else '{:0.2f}'.format(iouThr)
+
+            aind = [i for i, aRng in enumerate(p.areaRngLbl) if aRng == areaRng]
+            mind = [i for i, mDet in enumerate(p.maxDets) if mDet == maxDets]
+            if ap == 1:
+                # dimension of precision: [TxRxKxAxM]
+                s = self.eval['precision']
+                # IoU
+                if iouThr is not None:
+                    t = np.where(iouThr == p.iouThrs)[0]
+                    s = s[t]
+                if not class_index is None:
+                    s = s[:,:,class_index,aind,mind]
+                else:
+                    s = s[:,:,:,aind,mind]
+            else:
+                # dimension of recall: [TxKxAxM]
+                s = self.eval['recall']
+                if iouThr is not None:
+                    t = np.where(iouThr == p.iouThrs)[0]
+                    s = s[t]
+                if not class_index is None:
+                    s = s[:,class_index,aind,mind]
+                else:
+                    s = s[:,:,aind,mind]
+            if len(s[s>-1])==0:
+                mean_s = -1
+            else:
+                mean_s = np.mean(s[s>-1])
+            print(iStr.format(titleStr, typeStr, iouStr, areaRng, maxDets, mean_s))
+            return mean_s
+        def _summarizeDets():
+            stats = np.zeros((12,))
+            stats[0] = _summarize(1)
+            stats[1] = _summarize(1, iouThr=.5, maxDets=self.params.maxDets[2])
+            stats[2] = _summarize(1, iouThr=.75, maxDets=self.params.maxDets[2])
+            stats[3] = _summarize(1, areaRng='small', maxDets=self.params.maxDets[2])
+            stats[4] = _summarize(1, areaRng='medium', maxDets=self.params.maxDets[2])
+            stats[5] = _summarize(1, areaRng='large', maxDets=self.params.maxDets[2])
+            stats[6] = _summarize(0, maxDets=self.params.maxDets[0])
+            stats[7] = _summarize(0, maxDets=self.params.maxDets[1])
+            stats[8] = _summarize(0, maxDets=self.params.maxDets[2])
+            stats[9] = _summarize(0, areaRng='small', maxDets=self.params.maxDets[2])
+            stats[10] = _summarize(0, areaRng='medium', maxDets=self.params.maxDets[2])
+            stats[11] = _summarize(0, areaRng='large', maxDets=self.params.maxDets[2])
+            return stats
+        def _summarizeKps():
+            stats = np.zeros((10,))
+            stats[0] = _summarize(1, maxDets=20)
+            stats[1] = _summarize(1, maxDets=20, iouThr=.5)
+            stats[2] = _summarize(1, maxDets=20, iouThr=.75)
+            stats[3] = _summarize(1, maxDets=20, areaRng='medium')
+            stats[4] = _summarize(1, maxDets=20, areaRng='large')
+            stats[5] = _summarize(0, maxDets=20)
+            stats[6] = _summarize(0, maxDets=20, iouThr=.5)
+            stats[7] = _summarize(0, maxDets=20, iouThr=.75)
+            stats[8] = _summarize(0, maxDets=20, areaRng='medium')
+            stats[9] = _summarize(0, maxDets=20, areaRng='large')
+            return stats
+        if not self.eval:
+            raise Exception('Please run accumulate() first')
+        iouType = self.params.iouType
+        if iouType == 'segm' or iouType == 'bbox':
+            summarize = _summarizeDets
+        elif iouType == 'keypoints':
+            summarize = _summarizeKps
+        self.stats = summarize()
+
+    def __str__(self):
+        self.summarize()
+
+def evaluate_coco(model, dataset, coco_object, eval_type="bbox", 
+                  limit=0, image_ids=None, class_index=None, verbose=0):
+    """Wrapper to keep original function name usable"""
+    evaluate_dataset(model, dataset, coco_object, eval_type=eval_type, dataset_type='coco',
+                     limit=limit, image_ids=image_ids, class_index=class_index, verbose=verbose)
+    
+    
+        
+def evaluate_dataset(model, dataset, dataset_object, eval_type="bbox", dataset_type='coco', 
+                     limit=0, image_ids=None, class_index=None, verbose=0):
     """Runs official COCO evaluation.
     dataset: A Dataset object with valiadtion data
     eval_type: "bbox" or "segm" for bounding box or segmentation evaluation
     limit: if not 0, it's the number of images to use for evaluation
     """
+    assert dataset_type in ['coco', 'pascal']
+    assert eval_type in ['bbox', 'segm']
     # Pick COCO images from the dataset
     image_ids = image_ids or dataset.image_ids
 
@@ -408,16 +531,20 @@ def evaluate_coco(model, dataset, coco_object, eval_type="bbox", limit=0, image_
         image_ids = image_ids[:limit]
 
     # Get corresponding COCO image IDs.
-    coco_image_ids = [dataset.image_info[id]["id"] for id in image_ids]
+    dataset_image_ids = [dataset.image_info[id]["id"] for id in image_ids]
 
     t_prediction = 0
     t_start = time.time()
 
     results = []
     for i, image_id in enumerate(image_ids):
+        if i%100 == 0 and verbose > 0:
+            print("Processing image {}/{} ...".format(i, len(image_ids)))
         
         # Load GT data
-        _, _, gt_class_ids, _, _ = modellib.load_image_gt(dataset, model.config, image_id, augmentation=False, use_mini_mask=model.config.USE_MINI_MASK)
+        _, _, gt_class_ids, _, _ = modellib.load_image_gt(dataset, model.config, 
+                                                          image_id, augmentation=False, 
+                                                          use_mini_mask=model.config.USE_MINI_MASK)
 
         # BOILERPLATE: Code duplicated in siamese_data_loader
 
@@ -453,45 +580,44 @@ def evaluate_coco(model, dataset, coco_object, eval_type="bbox", limit=0, image_
             try:
                 target = get_one_target(category, dataset, model.config)
             except:
-                print('error 1', category)
+                print('error fetching target of category', category)
                 continue
             # Run detection
             t = time.time()
             try:
                 r = model.detect([target], [image], verbose=0)[0]
             except:
-                print('error 2', category)
+                print('error running detection for category', category)
                 continue
             t_prediction += (time.time() - t)
         
             
             # Format detections
             r["class_ids"] = np.array([category for i in range(r["class_ids"].shape[0])])
-            
-            # Threshold results
-#             active_rois = r["scores"] > model.config.DETECTION_SCORE_THRESHOLD
-#             r["class_ids"] = r["class_ids"][active_rois]
-#             r["masks"] = r["masks"][:,:,active_rois]
-#             r["rois"] = r["rois"][active_rois,:]
-#             r["scores"] = r["scores"][active_rois]
 
             # Convert results to COCO format
             # Cast masks to uint8 because COCO tools errors out on bool
-            image_results = coco.build_coco_results(dataset, coco_image_ids[i:i + 1],
+            if dataset_type == 'coco':
+                image_results = coco.build_coco_results(dataset, dataset_image_ids[i:i + 1],
+                                                   r["rois"], r["class_ids"],
+                                                   r["scores"],
+                                                   r["masks"].astype(np.uint8))
+            elif dataset_type == 'pascal':
+                image_results = build_pascal_results(dataset, dataset_image_ids[i:i + 1],
                                                r["rois"], r["class_ids"],
                                                r["scores"],
                                                r["masks"].astype(np.uint8))
             results.extend(image_results)
     
     # Load results. This modifies results with additional attributes.
-    coco_results = coco_object.loadRes(results)
+    dataset_results = dataset_object.loadRes(results)
 
     # Evaluate
-    cocoEval = COCOeval(coco_object, coco_results, eval_type)
-    cocoEval.params.imgIds = coco_image_ids
+    cocoEval = customCOCOeval(dataset_object, dataset_results, eval_type)
+    cocoEval.params.imgIds = dataset_image_ids
     cocoEval.evaluate()
     cocoEval.accumulate()
-    cocoEval.summarize()
+    cocoEval.summarize(class_index=class_index)
 
     print("Prediction time: {}. Average {}/image".format(
         t_prediction, t_prediction / len(image_ids)))

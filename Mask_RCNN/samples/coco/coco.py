@@ -93,7 +93,7 @@ class CocoConfig(Config):
 
 class CocoDataset(utils.Dataset):
     def load_coco(self, dataset_dir, subset, year=DEFAULT_DATASET_YEAR, class_ids=None,
-                  class_map=None, return_coco=False, auto_download=False):
+                  class_map=None, return_coco=False, auto_download=False, subsubset='train'):
         """Load a subset of the COCO dataset.
         dataset_dir: The root directory of the COCO dataset.
         subset: What to load (train, val, minival, valminusminival)
@@ -139,6 +139,12 @@ class CocoDataset(utils.Dataset):
         # Add classes
         for i in class_ids:
             self.add_class("coco", i, coco.loadCats(i)[0]["name"])
+
+        if subset == 'train':
+            if subsubset == 'train':
+                image_ids = image_ids[:-3000]
+            elif subsubset == 'val':
+                image_ids = image_ids[-3000:]
 
         # Add images
         for i in image_ids:

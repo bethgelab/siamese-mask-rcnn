@@ -516,7 +516,7 @@ def evaluate_coco(model, dataset, coco_object, eval_type="bbox",
     
         
 def evaluate_dataset(model, dataset, dataset_object, eval_type="bbox", dataset_type='coco', 
-                     limit=0, image_ids=None, class_index=None, verbose=0):
+                     limit=0, image_ids=None, class_index=None, verbose=0, random_detections=False):
     """Runs official COCO evaluation.
     dataset: A Dataset object with valiadtion data
     eval_type: "bbox" or "segm" for bounding box or segmentation evaluation
@@ -585,7 +585,7 @@ def evaluate_dataset(model, dataset, dataset_object, eval_type="bbox", dataset_t
             # Run detection
             t = time.time()
             try:
-                r = model.detect([target], [image], verbose=0)[0]
+                r = model.detect([target], [image], verbose=0, random_detections=random_detections)[0]
             except:
                 print('error running detection for category', category)
                 continue

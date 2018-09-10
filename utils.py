@@ -509,6 +509,7 @@ class customCOCOeval(COCOeval):
 def evaluate_coco(model, dataset, coco_object, eval_type="bbox", 
                   limit=0, image_ids=None, class_index=None, verbose=0):
     """Wrapper to keep original function name usable"""
+        
     evaluate_dataset(model, dataset, coco_object, eval_type=eval_type, dataset_type='coco',
                      limit=limit, image_ids=image_ids, class_index=class_index, verbose=verbose)
     
@@ -522,7 +523,6 @@ def evaluate_dataset(model, dataset, dataset_object, eval_type="bbox", dataset_t
     limit: if not 0, it's the number of images to use for evaluation
     """
     assert dataset_type in ['coco', 'pascal']
-    assert eval_type in ['bbox', 'segm']
     # Pick COCO images from the dataset
     image_ids = image_ids or dataset.image_ids
 
@@ -611,17 +611,22 @@ def evaluate_dataset(model, dataset, dataset_object, eval_type="bbox", dataset_t
     
     # Load results. This modifies results with additional attributes.
     dataset_results = dataset_object.loadRes(results)
+    
+    # allow evaluating bbox & segm:
+    if not isinstance(eval_type, (list,)):
+        eval_type = [eval_type]
+        
+    for current_eval_type in eval_type:
+        # Evaluate
+        cocoEval = customCOCOeval(dataset_object, dataset_results, current_eval_type)
+        cocoEval.params.imgIds = dataset_image_ids
+        cocoEval.evaluate()
+        cocoEval.accumulate()
+        cocoEval.summarize(class_index=class_index)
 
-    # Evaluate
-    cocoEval = customCOCOeval(dataset_object, dataset_results, eval_type)
-    cocoEval.params.imgIds = dataset_image_ids
-    cocoEval.evaluate()
-    cocoEval.accumulate()
-    cocoEval.summarize(class_index=class_index)
-
-    print("Prediction time: {}. Average {}/image".format(
-        t_prediction, t_prediction / len(image_ids)))
-    print("Total time: ", time.time() - t_start)
+        print("Prediction time: {}. Average {}/image".format(
+            t_prediction, t_prediction / len(image_ids)))
+        print("Total time: ", time.time() - t_start)
     
     
 ### Visualization ###
@@ -846,7 +851,7 @@ def display_siamese_instances2(target_list, image_list, boxes_list, masks_list, 
 
             target_height, target_width = target.shape[:2]
             ax.imshow(target, extent=[target_shift, target_shift + target_width * 2, height - target_shift, height - target_shift - target_height * 2], zorder=9)
-            rect = visualize.patches.Rectangle((target_shift, height - target_shift), target_width * 2, -target_height * 2, linewidth=10, edgecolor='white', facecolor='none', zorder=10)
+            rect = visualize.patches.Rectangle((target_shift, height - target_shift), target_width * 2, -target_height * 2, linewidth=2, edgecolor='red', facecolor='none', zorder=10)
             ax.add_patch(rect)
             index = index + 1
 

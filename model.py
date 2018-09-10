@@ -734,12 +734,14 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
             weights_path = '/gpfs01/bethge/home/cmichaelis/projects/2018-03_Siamese_Mask_RCNN/logs/imagenet20180511T1119/mask_rcnn_imagenet_0810.h5'
         elif pretraining == 'imagenet-771':
             weights_path = '/gpfs01/bethge/home/cmichaelis/projects/2018-03_Siamese_Mask_RCNN/logs/imagenet20180520T2051/mask_rcnn_imagenet_0784.h5'
-            
+        elif pretraining == 'imagenet-687':
+            weights_path = '/gpfs01/bethge/home/cmichaelis/projects/2018-03_Siamese_Mask_RCNN/logs/imagenet-68720180904T1258/mask_rcnn_imagenet-687_0700.h5'    
+        
         return weights_path
     
-    def load_imagenet_weights(self):
+    def load_imagenet_weights(self, pretraining='imagenet-1k'):
         print('initializing from imagenet weights ...')
-        weights_path = self.get_imagenet_weights(pretraining='imagenet-1k')
+        weights_path = self.get_imagenet_weights(pretraining=pretraining)
         self.load_weights(weights_path, by_name=True)
         self.set_log_dir()
     

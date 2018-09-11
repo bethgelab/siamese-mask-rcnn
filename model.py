@@ -731,11 +731,11 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
 #                                 md5_hash='a268eb855778b3df3c7506639542a6af')
         
         if pretraining == 'imagenet-1k':
-            weights_path = '/gpfs01/bethge/home/cmichaelis/projects/2018-03_Siamese_Mask_RCNN/logs/imagenet20180511T1119/mask_rcnn_imagenet_0810.h5'
+            weights_path = 'checkpoints/imagenet_1k.h5'
         elif pretraining == 'imagenet-771':
-            weights_path = '/gpfs01/bethge/home/cmichaelis/projects/2018-03_Siamese_Mask_RCNN/logs/imagenet20180520T2051/mask_rcnn_imagenet_0784.h5'
+            weights_path = 'checkpoints/imagenet_771.h5'
         elif pretraining == 'imagenet-687':
-            weights_path = '/gpfs01/bethge/home/cmichaelis/projects/2018-03_Siamese_Mask_RCNN/logs/imagenet-68720180904T1258/mask_rcnn_imagenet-687_0700.h5'    
+            weights_path = 'checkpoints/imagenet_687.h5'    
         
         return weights_path
     

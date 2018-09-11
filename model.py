@@ -454,7 +454,7 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
 
         return model
     
-    def set_trainable(self, layer_regex, keras_model=None, indent=0, verbose=1):
+    def set_trainable(self, layer_regex, keras_model=None, indent=0, verbose=0):
         """Sets model layers as trainable if their names match
         the given regular expression.
         """
@@ -719,7 +719,7 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
         Returns path to weights file.
         TODO: Upload weights to server
         """
-        assert pretraining in ['imagenet-1k', 'imagenet-771']
+        assert pretraining in ['imagenet-1k', 'imagenet-771', 'imagenet-687']
         
 #         from keras.utils.data_utils import get_file
 #         TF_WEIGHTS_PATH_NO_TOP = 'https://github.com/fchollet/deep-learning-models/'\
@@ -745,8 +745,9 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
         self.load_weights(weights_path, by_name=True)
         self.set_log_dir()
     
-    def load_checkpoint(self, weights_path, training_schedule=None):
-        print('loading', weights_path, '...')
+    def load_checkpoint(self, weights_path, training_schedule=None, verbose=1):
+        if verbose > 0:
+            print('loading', weights_path, '...')
         
         layer_regex = {
             # all layers but the backbone
@@ -764,6 +765,8 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
         
         # set layers trainable for resnet weight loading
         epoch_index = int(weights_path[-7:-3])
+        if verbose > 0:
+            print('starting from epoch {}'.format(epoch_index))
         if training_schedule is not None:
             # get correct schedule period
             schedule_index = min([key for key in training_schedule.keys() if epoch_index <= key])

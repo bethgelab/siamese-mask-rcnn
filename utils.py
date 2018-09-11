@@ -424,7 +424,7 @@ def build_pascal_results(dataset, image_ids, rois, class_ids, scores, masks):
 
 class customCOCOeval(COCOeval):
     
-    def summarize(self, class_index=None):
+    def summarize(self, class_index=None, verbose=1):
         '''
         Compute and display summary metrics for evaluation results.
         Note this functin can *only* be applied on the default parameter setting
@@ -464,7 +464,8 @@ class customCOCOeval(COCOeval):
                 mean_s = -1
             else:
                 mean_s = np.mean(s[s>-1])
-            print(iStr.format(titleStr, typeStr, iouStr, areaRng, maxDets, mean_s))
+            if verbose > 0:
+                print(iStr.format(titleStr, typeStr, iouStr, areaRng, maxDets, mean_s))
             return mean_s
         def _summarizeDets():
             stats = np.zeros((12,))
@@ -503,20 +504,22 @@ class customCOCOeval(COCOeval):
             summarize = _summarizeKps
         self.stats = summarize()
 
-    def __str__(self):
-        self.summarize()
+    def __str__(self, cass_index=None):
+        self.summarize(class_index)
 
 def evaluate_coco(model, dataset, coco_object, eval_type="bbox", 
-                  limit=0, image_ids=None, class_index=None, verbose=0):
+                  limit=0, image_ids=None, class_index=None, verbose=1, return_results=False):
     """Wrapper to keep original function name usable"""
         
-    evaluate_dataset(model, dataset, coco_object, eval_type=eval_type, dataset_type='coco',
-                     limit=limit, image_ids=image_ids, class_index=class_index, verbose=verbose)
+    results = evaluate_dataset(model, dataset, coco_object, eval_type=eval_type, dataset_type='coco',
+                     limit=limit, image_ids=image_ids, class_index=class_index, verbose=verbose, return_results=return_results)
     
+    if return_results:
+        return results
     
         
 def evaluate_dataset(model, dataset, dataset_object, eval_type="bbox", dataset_type='coco', 
-                     limit=0, image_ids=None, class_index=None, verbose=0, random_detections=False):
+                     limit=0, image_ids=None, class_index=None, verbose=1, random_detections=False, return_results=False):
     """Runs official COCO evaluation.
     dataset: A Dataset object with valiadtion data
     eval_type: "bbox" or "segm" for bounding box or segmentation evaluation
@@ -538,7 +541,7 @@ def evaluate_dataset(model, dataset, dataset_object, eval_type="bbox", dataset_t
 
     results = []
     for i, image_id in enumerate(image_ids):
-        if i%100 == 0 and verbose > 0:
+        if i%100 == 0 and verbose > 1:
             print("Processing image {}/{} ...".format(i, len(image_ids)))
         
         # Load GT data
@@ -622,11 +625,14 @@ def evaluate_dataset(model, dataset, dataset_object, eval_type="bbox", dataset_t
         cocoEval.params.imgIds = dataset_image_ids
         cocoEval.evaluate()
         cocoEval.accumulate()
-        cocoEval.summarize(class_index=class_index)
-
-        print("Prediction time: {}. Average {}/image".format(
-            t_prediction, t_prediction / len(image_ids)))
-        print("Total time: ", time.time() - t_start)
+        cocoEval.summarize(class_index=class_index, verbose=verbose)
+        if verbose > 0:
+            print("Prediction time: {}. Average {}/image".format(
+                t_prediction, t_prediction / len(image_ids)))
+            print("Total time: ", time.time() - t_start)
+        
+    if return_results:
+        return cocoEval
     
     
 ### Visualization ###

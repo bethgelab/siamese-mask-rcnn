@@ -731,11 +731,11 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
 #                                 md5_hash='a268eb855778b3df3c7506639542a6af')
         
         if pretraining == 'imagenet-1k':
-            weights_path = 'checkpoints/imagenet_1k.h5'
+            weights_path = '../checkpoints/imagenet_1k.h5'
         elif pretraining == 'imagenet-771':
-            weights_path = 'checkpoints/imagenet_771.h5'
+            weights_path = '../checkpoints/imagenet_771.h5'
         elif pretraining == 'imagenet-687':
-            weights_path = 'checkpoints/imagenet_687.h5'    
+            weights_path = '../checkpoints/imagenet_687.h5'    
         
         return weights_path
     

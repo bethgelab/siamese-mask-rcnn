@@ -10,8 +10,10 @@ cocoapi/*
 # Mask_RCNN/*
 transformer/*
 __pycache__/*
+lib/__pycache__/*
 *.h5
 slim/*
+data/*
 
 # Created by https://www.gitignore.io/api/vim,linux,macos,jupyternotebook
 

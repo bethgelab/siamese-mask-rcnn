@@ -29,7 +29,7 @@ from mrcnn import utils
 from mrcnn import model as modellib
 from mrcnn import visualize  
 
-import utils as siamese_utils
+from lib import utils as siamese_utils
 
 
 def build_resnet_model(config):

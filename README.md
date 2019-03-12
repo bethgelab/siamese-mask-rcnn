@@ -15,7 +15,9 @@ The repository includes:
 
 ## One-Shot Instance Segmentation
 
-![Teaser Image](figures/teaser_web.jpg)
+<p align="center">
+ <img src="figures/teaser_web.jpg" width=80%>
+</p>
 
 One-shot instance segmentation can be summed up as: Given a query image and a reference image showing an object of a novel category, we seek to detect and segment all instances of the corresponding category (‘person’ on the left, ‘car’ on the right). Note that no ground truth annotations of reference categories are used during training.
 This type of visual search task creates new challenges for computer vision algorithms, as methods from metric and few-shot learning have to be incorporated into the notoriously hard tasks ofobject identification and segmentation. 

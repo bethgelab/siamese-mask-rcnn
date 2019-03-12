@@ -25,17 +25,27 @@ Siamese Mask R-CNN extends Mask R-CNN - a state-of-the-art object detection and 
 
 ## Installation
 
+1. Clone this repository
+2. Prepare COCO dataset as described below
+3. Run the [install_requirements.ipynb](install_requirements.ipynb) notebook to install all relevant dependencies.
+
 ### Requirements
 
-Linux, Python 3.4+, Tensorflow, Keras and other dependencies listed in install_requirements.ipynb
+Linux, Python 3.4+, Tensorflow, Keras 2.1.6, cython, scikit_image 0.13.1, h5py, imgaug and opencv_python
 
-### Prepare COCO dataset.
+### Prepare COCO dataset
 
-The model requires [MS COCO](http://cocodataset.org/#home) and the [CocoAPI](https://github.com/waleedka/coco). It is recommended to symlink the dataset root and the CocoAPI to `/data`.
-
-### Install dependencies
-
-Run the [install_requirements.ipynb](install_requirements.ipynb) notebook to install all relevant requirements.
+The model requires [MS COCO](http://cocodataset.org/#home) and the [CocoAPI](https://github.com/waleedka/coco) to be added to `/data`.
+```
+mkdir data
+cd data
+git clone https://github.com/cocodataset/cocoapi.git
+```
+It is recommended to symlink the dataset root of MS COCO. 
+```
+ln -s $PATH_TO_COCO$/coco coco
+```
+If unsure follow the instructions of the [Matterport Mask R-CNN implementation](https://github.com/matterport/Mask_RCNN#ms-coco-requirements).
 
 ## Training
 

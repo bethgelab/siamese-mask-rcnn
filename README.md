@@ -49,7 +49,7 @@ If unsure follow the instructions of the [Matterport Mask R-CNN implementation](
 
 ### Get pretrained weights
 
-Get the pretrained weights from the release menu and save them to `/checkpoints`.
+Get the pretrained weights from the [releases menu](https://github.com/bethgelab/siamese-mask-rcnn/releases) and save them to `/checkpoints`.
 
 ## Training
 

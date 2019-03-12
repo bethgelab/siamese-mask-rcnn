@@ -7,10 +7,10 @@ The repository includes:
 - [x] Training code for MS COCO
 - [x] Evaluation on MS COCO metrics (AP)
 - [x] Training and evaluation of one-shot splits of MS COCO
-- [x] Pre-trained weights for ImageNet
 - [x] Training code to reproduce the results from the paper
-- [ ] Pre-trained weights for MS COCO and the one-shot splits
-- [ ] Code to evaluate models from the paper
+- [x] Pre-trained weights for ImageNet
+- [ ] Pre-trained weights for all models from the paper
+- [ ] Code to evaluate all models from the paper
 - [ ] Code to generate paper figures
 
 ## One-Shot Instance Segmentation

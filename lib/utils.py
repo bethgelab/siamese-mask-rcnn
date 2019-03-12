@@ -18,8 +18,6 @@ if MASK_RCNN_MODEL_PATH not in sys.path:
     sys.path.append(MASK_RCNN_MODEL_PATH)
     
 from samples.coco import coco
-from samples.ade20k import ade20k
-from samples.pascal_voc import pascal_voc
 from mrcnn import utils
 from mrcnn import model as modellib
 from mrcnn import visualize  
@@ -339,209 +337,9 @@ class IndexedCocoDataset(coco.CocoDataset):
             category_image_index.append(images_per_category)
 
         return category_image_index
-    
-class IndexedOpenimagesDataset(IndexedCocoDataset):
-    def load_oi(self, dataset_dir, subset, class_ids=None,
-                      class_map=None, return_coco=False, auto_download=False):
-        """Load a subset of the COCO dataset.
-        dataset_dir: The root directory of the COCO dataset.
-        subset: What to load (train, val, minival, valminusminival)
-        year: What dataset year to load (2014, 2017) as a string, not an integer
-        class_ids: If provided, only loads images that have the given classes.
-        class_map: TODO: Not implemented yet. Supports maping classes from
-            different datasets to the same class ID.
-        return_coco: If True, returns the COCO object.
-        auto_download: Automatically download and unzip MS-COCO images and annotations
-        """
-
-        image_dir = "{}/{}".format(dataset_dir, subset)
-        coco = COCO("{}/annotations/{}-annotations-bbox-fake-segmentations.json".format(dataset_dir, subset))
-
-        # Load all classes or a subset?
-        if not class_ids:
-            # All classes
-            class_ids = sorted(coco.getCatIds())
-
-        # All images or a subset?
-        if class_ids:
-            image_ids = []
-            for id in class_ids:
-                image_ids.extend(list(coco.getImgIds(catIds=[id])))
-            # Remove duplicates
-            image_ids = list(set(image_ids))
-        else:
-            # All images
-            image_ids = list(coco.imgs.keys())
-
-        # Add classes
-        for i in class_ids:
-            self.add_class("coco", i, coco.loadCats(i)[0]["name"])
-
-        # Add images
-        for i in image_ids:
-            self.add_image(
-                "coco", image_id=i,
-                path=os.path.join(image_dir, coco.imgs[i]['file_name']),
-                width=coco.imgs[i]["width"],
-                height=coco.imgs[i]["height"],
-                annotations=coco.loadAnns(coco.getAnnIds(
-                    imgIds=[i], catIds=class_ids, iscrowd=None)))
-        if return_coco:
-            return coco
-      
-    def load_image(self, image_id):
-        """Load the specified image and return a [H,W,3] Numpy array.
-        """
-        # Load image
-        image = skimage.io.imread(self.image_info[image_id]['path'])
-        if image.ndim == 1:
-            image = image[0]
-        # If grayscale. Convert to RGB for consistency.
-        if image.ndim == 2:
-            image = skimage.color.gray2rgb(image)
-        # If has an alpha channel, remove it for consistency
-        if image.shape[-1] == 4:
-            image = image[..., :3]
-        return image
-    
-    def load_mask(self, image_id):
-        """Load instance masks for the given image.
-
-        Different datasets use different ways to store masks. This
-        function converts the different mask format to one format
-        in the form of a bitmap [height, width, instances].
-
-        Returns:
-        masks: A bool array of shape [height, width, instance count] with
-            one mask per instance.
-        class_ids: a 1D array of class IDs of the instance masks.
-        """
-        # If not a COCO image, delegate to parent class.
-        image_info = self.image_info[image_id]
-        if image_info["source"] != "coco":
-            return super(CocoDataset, self).load_mask(image_id)
-
-        instance_masks = []
-        class_ids = []
-        annotations = self.image_info[image_id]["annotations"]
-        # Build mask of shape [height, width, instance_count] and list
-        # of class IDs that correspond to each channel of the mask.
-        for annotation in annotations:
-            class_id = self.map_source_class_id(
-                "coco.{}".format(annotation['category_id']))
-            if class_id:
-    #             m = self.annToMask(annotation, image_info["height"],
-    #                                image_info["width"])
-                m = np.zeros((image_info["height"], image_info["width"]), dtype='uint8')
-                x, y, w, h = [np.ceil(a).astype('uint32') for a in annotation['bbox']]
-                m[y:y+h,x:x+w] = 1
-                # Some objects are so small that they're less than 1 pixel area
-                # and end up rounded out. Skip those objects.
-                if m.max() < 1:
-                    continue
-                # Is it a crowd? If so, use a negative class ID.
-                if annotation['iscrowd']:
-                    # Use negative class ID for crowds
-                    class_id *= -1
-                    # For crowd masks, annToMask() sometimes returns a mask
-                    # smaller than the given dimensions. If so, resize it.
-                    if m.shape[0] != image_info["height"] or m.shape[1] != image_info["width"]:
-                        m = np.ones([image_info["height"], image_info["width"]], dtype=bool)
-                instance_masks.append(m)
-                class_ids.append(class_id)
-
-        # Pack instance masks into an array
-        if class_ids:
-            mask = np.stack(instance_masks, axis=2).astype(np.bool)
-            class_ids = np.array(class_ids, dtype=np.int32)
-            return mask, class_ids
-        else:
-            # Call super class to return an empty mask
-            return super(CocoDataset, self).load_mask(image_id)
-    
-    
-class IndexedADE20KDataset(ade20k.ADE20KDataset):
-    
-    def build_indices(self):
-
-        self.image_category_index = IndexedADE20KDataset._build_image_category_index(self)
-        self.category_image_index = IndexedADE20KDataset._build_category_image_index(self.image_category_index)
-
-    def _build_image_category_index(dataset):
-
-        image_category_index = []
-        for im in range(len(dataset.image_info)):
-            image_category_index.append(list(dataset.image_info[im]['annotations']['class_index']))
-
-        return image_category_index
-
-    def _build_category_image_index(image_category_index):
-
-        category_image_index = []
-        for category in range(np.max(sum(image_category_index, [])) + 1):
-            # Find all images corresponding to the selected class/category 
-            images_per_category = [i for i, image_categories in enumerate(image_category_index)
-                                   if category in image_categories]
-            # Put list together
-            category_image_index.append(images_per_category)
-
-        return category_image_index
-    
-class IndexedPascalVOCDataset(pascal_voc.PascalVOCDataset):
-    
-    def build_indices(self):
-
-        self.image_category_index = IndexedPascalVOCDataset._build_image_category_index(self)
-        self.category_image_index = IndexedPascalVOCDataset._build_category_image_index(self.image_category_index)
-
-    def _build_image_category_index(dataset):
-
-        image_category_index = []
-        for im in range(len(dataset.image_info)):
-            image_category_index.append(list(dataset.image_info[im]['annotations']['class_index']))
-
-        return image_category_index
-
-    def _build_category_image_index(image_category_index):
-
-        category_image_index = []
-        for category in range(np.max(sum(image_category_index, [])) + 1):
-            # Find all images corresponding to the selected class/category 
-            images_per_category = [i for i, image_categories in enumerate(image_category_index)
-                                   if category in image_categories]
-            # Put list together
-            category_image_index.append(images_per_category)
-
-        return category_image_index
 
     
 ### Evaluation ###
-
-def build_pascal_results(dataset, image_ids, rois, class_ids, scores, masks):
-    """Arrange resutls to match COCO specs in http://cocodataset.org/#format
-    """
-    # If no results, return an empty list
-    if rois is None:
-        return []
-
-    results = []
-    for image_id in image_ids:
-        # Loop through detections
-        for i in range(rois.shape[0]):
-            class_id = class_ids[i]
-            score = scores[i]
-            bbox = np.around(rois[i], 1)
-            mask = masks[:, :, i]
-
-            result = {
-                "image_id": image_id,
-                "category_id": class_id,
-                "bbox": [bbox[1], bbox[0], bbox[3] - bbox[1], bbox[2] - bbox[0]],
-                "score": score,
-                "segmentation": coco.maskUtils.encode(np.asfortranarray(mask))
-            }
-            results.append(result)
-    return results
 
 
 
@@ -648,7 +446,7 @@ def evaluate_dataset(model, dataset, dataset_object, eval_type="bbox", dataset_t
     eval_type: "bbox" or "segm" for bounding box or segmentation evaluation
     limit: if not 0, it's the number of images to use for evaluation
     """
-    assert dataset_type in ['coco', 'pascal']
+    assert dataset_type in ['coco']
     # Pick COCO images from the dataset
     image_ids = image_ids or dataset.image_ids
 
@@ -728,11 +526,6 @@ def evaluate_dataset(model, dataset, dataset_object, eval_type="bbox", dataset_t
                                                    r["rois"], r["class_ids"],
                                                    r["scores"],
                                                    r["masks"].astype(np.uint8))
-            elif dataset_type == 'pascal':
-                image_results = build_pascal_results(dataset, dataset_image_ids[i:i + 1],
-                                               r["rois"], r["class_ids"],
-                                               r["scores"],
-                                               r["masks"].astype(np.uint8))
             results.extend(image_results)
     
     # Load results. This modifies results with additional attributes.

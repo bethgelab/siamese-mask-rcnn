@@ -75,9 +75,9 @@ Siamese Mask R-CNN is designed as a minimal variation of Mask R-CNN which can pe
 If you use this repository or want to reference our work please cite our paper:
 ```
 @article{michaelis_one-shot_2018,
-	title = {One-{Shot} {Instance} {Segmentation}},
+	title = {One-Shot Instance Segmentation},
 	author = {Michaelis, Claudio and Ustyuzhaninov, Ivan and Bethge, Matthias and Ecker, Alexander S.},
 	year = {2018},
-  journal = {arXiv},
-  url = {http://arxiv.org/abs/1811.11507},
+  	journal = {arXiv},
+  	url = {http://arxiv.org/abs/1811.11507},
 ```

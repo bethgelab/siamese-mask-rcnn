@@ -1,10 +1,3 @@
-evaluate_siamese-mask-rcnn.ipynb
-train_imagenet.ipynb
-train_siamese_mask_rcnn.ipynb
-train_siamese_semantic.ipynb
-install_requirements.ipynb
-evaluate.ipynb
-
 ###
 __pycache__/*
 lib/__pycache__/*

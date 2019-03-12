@@ -24,6 +24,10 @@ class Config(object):
     # Select wether to use Mask R-CNN or Faster R-CNN
     # Must be one of: 'mrcnn' or 'frcnn'
     MODEL = 'mrcnn'
+    
+    # CHANGE: Added CHECKPOINT_DIR
+    # Directory with pretrained checkpoints
+    CHECKPOINT_DIR = 'checkpoints/'
 
     # NUMBER OF GPUs to use. For CPU training, use 1
     GPU_COUNT = 1

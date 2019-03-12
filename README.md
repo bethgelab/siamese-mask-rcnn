@@ -47,6 +47,10 @@ ln -s $PATH_TO_COCO$/coco coco
 ```
 If unsure follow the instructions of the [Matterport Mask R-CNN implementation](https://github.com/matterport/Mask_RCNN#ms-coco-requirements).
 
+### Get pretrained weights
+
+Get the pretrained weights from the release menu and save them to `/checkpoints`.
+
 ## Training
 
 To train a small version of siamese mask r-cnn on MS COCO simply follow the instructions in the [training.ipynb](training.ipynb) notebook. This model runs on a single GPU with 12GB memory.

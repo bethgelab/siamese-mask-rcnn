@@ -33,12 +33,35 @@ The model requires [MS COCO](http://cocodataset.org/#home) and the [CocoAPI](htt
 
 ### Install dependencies
 
-Run the install_requirements.ipynb notebook to install all relevant requirements.
+Run the [install_requirements.ipynb](install_requirements.ipynb) notebook to install all relevant requirements.
 
 ## Training
 
+To train a small version of siamese mask r-cnn on MS COCO simply follow the instructions in the [training.ipynb](training.ipynb) notebook. This model runs on a single GPU with 12GB memory.
+
+To train the models reported in the paper execute the notebooks provided in [experiments](experiments). Those models need 4 GPUs with 12GB memory each.
+
 ## Evaluation
+
+To evaluate and visualize a models results run the [evaluation.ipynb](evaluation.ipynb) notebook. Make sure to use the same config as used for training the model.
 
 ## Model description
 
+Siamese Mask R-CNN is designed as a minimal variation of Mask R-CNN which can perform the visual search task described above. For more details please read the [paper](https://arxiv.org/abs/1811.11507).
+
+
+<p align="center">
+ <img src="figures/siamese-mask-rcnn-sketch.png" width=50%>
+</p>
+
 ## Citation
+
+If you use this repository or want to reference our work please cite our paper:
+```
+@article{michaelis_one-shot_2018,
+	title = {One-{Shot} {Instance} {Segmentation}},
+	author = {Michaelis, Claudio and Ustyuzhaninov, Ivan and Bethge, Matthias and Ecker, Alexander S.},
+	year = {2018},
+  journal = {arXiv},
+  url = {http://arxiv.org/abs/1811.11507},
+```

@@ -7,10 +7,10 @@ The repository includes:
 - [x] Training code for MS COCO
 - [x] Evaluation on MS COCO metrics (AP)
 - [x] Training and evaluation of one-shot splits of MS COCO
-- [x] Pre-trained weights for ImageNet
 - [x] Training code to reproduce the results from the paper
-- [ ] Pre-trained weights for MS COCO and the one-shot splits
-- [ ] Code to evaluate models from the paper
+- [x] Pre-trained weights for ImageNet
+- [ ] Pre-trained weights for all models from the paper
+- [ ] Code to evaluate all models from the paper
 - [ ] Code to generate paper figures
 
 ## One-Shot Instance Segmentation
@@ -47,6 +47,10 @@ ln -s $PATH_TO_COCO$/coco coco
 ```
 If unsure follow the instructions of the [Matterport Mask R-CNN implementation](https://github.com/matterport/Mask_RCNN#ms-coco-requirements).
 
+### Get pretrained weights
+
+Get the pretrained weights from the [releases menu](https://github.com/bethgelab/siamese-mask-rcnn/releases) and save them to `/checkpoints`.
+
 ## Training
 
 To train a small version of siamese mask r-cnn on MS COCO simply follow the instructions in the [training.ipynb](training.ipynb) notebook. This model runs on a single GPU with 12GB memory.
@@ -71,9 +75,10 @@ Siamese Mask R-CNN is designed as a minimal variation of Mask R-CNN which can pe
 If you use this repository or want to reference our work please cite our paper:
 ```
 @article{michaelis_one-shot_2018,
-	title = {One-{Shot} {Instance} {Segmentation}},
-	author = {Michaelis, Claudio and Ustyuzhaninov, Ivan and Bethge, Matthias and Ecker, Alexander S.},
-	year = {2018},
-  journal = {arXiv},
-  url = {http://arxiv.org/abs/1811.11507},
+    title = {One-Shot Instance Segmentation},
+    author = {Michaelis, Claudio and Ustyuzhaninov, Ivan and Bethge, Matthias and Ecker, Alexander S.},
+    year = {2018},
+    journal = {arXiv},
+    url = {http://arxiv.org/abs/1811.11507}
+}
 ```

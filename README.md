@@ -10,7 +10,7 @@ The repository includes:
 - [x] Training code to reproduce the results from the paper
 - [x] Pre-trained weights for ImageNet
 - [ ] Pre-trained weights for all models from the paper
-- [ ] Code to evaluate all models from the paper
+- [x] Code to evaluate all models from the paper
 - [ ] Code to generate paper figures
 
 ## One-Shot Instance Segmentation
@@ -55,11 +55,13 @@ Get the pretrained weights from the [releases menu](https://github.com/bethgelab
 
 To train a small version of siamese mask r-cnn on MS COCO simply follow the instructions in the [training.ipynb](training.ipynb) notebook. This model runs on a single GPU with 12GB memory.
 
-To train the models reported in the paper execute the notebooks provided in [experiments](experiments). Those models need 4 GPUs with 12GB memory each.
+To train the models reported in the paper run the notebooks provided in [experiments](experiments). Those models need 4 GPUs with 12GB memory each.
 
 ## Evaluation
 
 To evaluate and visualize a models results run the [evaluation.ipynb](evaluation.ipynb) notebook. Make sure to use the same config as used for training the model.
+
+To evaluate the models reported in the paper run the evaluation notebook provided in [experiments](experiments). Each model will be evaluated 5 times to compensate for the stochastic effects introduced by randomly choosing the reference instances. The final result is the mean of those five runs.
 
 ## Model description
 

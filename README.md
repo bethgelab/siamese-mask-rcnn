@@ -9,9 +9,9 @@ The repository includes:
 - [x] Training and evaluation of one-shot splits of MS COCO
 - [x] Training code to reproduce the results from the paper
 - [x] Pre-trained weights for ImageNet
-- [ ] Pre-trained weights for all models from the paper
+- [x] Pre-trained weights for all models from the paper
 - [x] Code to evaluate all models from the paper
-- [ ] Code to generate paper figures
+- [x] Code to generate result figures
 
 ## One-Shot Instance Segmentation
 

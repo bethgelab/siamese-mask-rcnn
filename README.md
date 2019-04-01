@@ -2,6 +2,10 @@
 
 This is the official implementation of Siamese Mask R-CNN from [One-Shot Instance Segmentation](https://arxiv.org/abs/1811.11507). It is based on the [Mask R-CNN](https://arxiv.org/abs/1703.06870) implementation by [Matterport](https://github.com/matterport/Mask_RCNN).
 
+<p align="center">
+ <img src="figures/teaser_web.jpg" width=80%>
+</p>
+
 The repository includes:
 - [x] Source code of Siamese Mask R-CNN
 - [x] Training code for MS COCO
@@ -15,11 +19,7 @@ The repository includes:
 
 ## One-Shot Instance Segmentation
 
-<p align="center">
- <img src="figures/teaser_web.jpg" width=80%>
-</p>
-
-One-shot instance segmentation can be summed up as: Given a query image and a reference image showing an object of a novel category, we seek to detect and segment all instances of the corresponding category (‘person’ on the left, ‘car’ on the right). Note that no ground truth annotations of reference categories are used during training.
+One-shot instance segmentation can be summed up as: Given a query image and a reference image showing an object of a novel category, we seek to detect and segment all instances of the corresponding category (in the image above ‘person’ on the left, ‘car’ on the right). Note that no ground truth annotations of reference categories are used during training.
 This type of visual search task creates new challenges for computer vision algorithms, as methods from metric and few-shot learning have to be incorporated into the notoriously hard tasks ofobject identification and segmentation. 
 Siamese Mask R-CNN extends Mask R-CNN - a state-of-the-art object detection and segmentation system - with a Siamese backbone and a matching procedure to perform this type of visual search.
 

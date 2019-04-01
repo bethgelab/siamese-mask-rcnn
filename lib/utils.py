@@ -166,10 +166,13 @@ def siamese_data_generator(dataset, config, shuffle=True, augmentation=imgaug.au
             category = np.random.choice(active_categories)
                 
             # Generate siamese target crop
-            target = get_one_target(category, dataset, config, augmentation=augmentation)
-            if target is None: # fix until a better ADE20K metadata is built
-                print('skip target')
-                continue
+            if not config.NUM_TARGETS:
+                config.NUM_TARGETS = 1
+            targets = []
+            for i in range(config.NUM_TARGETS):
+                targets.append(get_one_target(category, dataset, config, augmentation=augmentation))
+#             target = np.stack(target, axis=0)
+                    
 #             print(target_class_id)
             target_class_id = category
             target_class_ids = np.array([target_class_id])
@@ -213,7 +216,7 @@ def siamese_data_generator(dataset, config, shuffle=True, augmentation=imgaug.au
                 batch_gt_boxes = np.zeros(
                     (batch_size, config.MAX_GT_INSTANCES, 4), dtype=np.int32)
                 batch_targets = np.zeros(
-                    (batch_size,) + target.shape, dtype=np.float32)
+                    (batch_size, config.NUM_TARGETS) + targets[0].shape, dtype=np.float32)
 #                 batch_target_class_ids = np.zeros(
 #                     (batch_size, config.MAX_TARGET_INSTANCES), dtype=np.int32)
                 if config.USE_MINI_MASK:
@@ -250,7 +253,7 @@ def siamese_data_generator(dataset, config, shuffle=True, augmentation=imgaug.au
             batch_rpn_match[b] = rpn_match[:, np.newaxis]
             batch_rpn_bbox[b] = rpn_bbox
             batch_images[b] = modellib.mold_image(image.astype(np.float32), config)
-            batch_targets[b] = modellib.mold_image(target.astype(np.float32), config)
+            batch_targets[b] = np.stack([modellib.mold_image(target.astype(np.float32), config) for target in targets], axis=0)
             batch_gt_class_ids[b, :siamese_class_ids.shape[0]] = siamese_class_ids
 #             batch_target_class_ids[b, :target_class_ids.shape[0]] = target_class_ids
             batch_gt_boxes[b, :gt_boxes.shape[0]] = gt_boxes
@@ -501,11 +504,14 @@ def evaluate_dataset(model, dataset, dataset_object, eval_type="bbox", dataset_t
             image = dataset.load_image(image_id)
 
             # Draw random target
-            try:
-                target = get_one_target(category, dataset, model.config)
-            except:
-                print('error fetching target of category', category)
-                continue
+            target = []
+            for k in range(model.config.NUM_TARGETS):
+                try:
+                    target.append(get_one_target(category, dataset, model.config))
+                except:
+                    print('error fetching target of category', category)
+                    continue
+            target = np.stack(target, axis=0)
             # Run detection
             t = time.time()
             try:

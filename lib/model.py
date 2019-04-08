@@ -298,14 +298,14 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
                 target_pyramid = out
             else:
                 target_pyramid = [KL.Add(name="target_adding_{}_{}".format(k, i))(
-                    [target_pyramid[i], out[i]]) for i in range(len(target_pyramid))]
+                    [target_pyramid[i], out[i]]) for i in range(len(out))]
                 
         TP2, TP3, TP4, TP5, TP6 = [KL.Lambda(lambda x: x / config.NUM_TARGETS)(
             target_pyramid[i]) for i in range(len(target_pyramid))]
 #        one_target = KL.Lambda(lambda x: x[:,0,...])(input_target)
 #        one_target = input_target[:,0,...]
-        _, TC2, TC3, TC4, TC5 = resnet(one_target)
-        TP2, TP3, TP4, TP5, TP6 = fpn([TC2, TC3, TC4, TC5])
+#         _, TC2, TC3, TC4, TC5 = resnet(one_target)
+#         TP2, TP3, TP4, TP5, TP6 = fpn([TC2, TC3, TC4, TC5])
     
         
         # CHANGE: add siamese distance copmputation

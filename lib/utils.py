@@ -685,7 +685,8 @@ def display_grid(target_list, image_list, boxes_list, masks_list, class_ids_list
                       figsize=(16, 16), ax=None,
                       show_mask=True, show_bbox=True,
                       colors=None, captions=None,
-                      target_shift=10, fontsize=14):
+                      target_shift=10, fontsize=14,
+                      save=False):
     """
     boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image coordinates.
     masks: [height, width, num_instances]
@@ -801,6 +802,10 @@ def display_grid(target_list, image_list, boxes_list, masks_list, class_ids_list
             target_height, target_width = target.shape[:2]
             target_height = target_height // 2
             target_width = target_width // 2
+            target_area = target_height * target_width
+            target_scaling = np.sqrt((192//2*96//2) / target_area)
+            target_height = int(target_height * target_scaling)
+            target_width = int(target_width * target_scaling)
             ax.imshow(target, extent=[target_shift, target_shift + target_width * 2, height - target_shift, height - target_shift - target_height * 2], zorder=9)
             rect = visualize.patches.Rectangle((target_shift, height - target_shift), target_width * 2, -target_height * 2, linewidth=5, edgecolor='white', facecolor='none', zorder=10)
             ax.add_patch(rect)
@@ -810,6 +815,9 @@ def display_grid(target_list, image_list, boxes_list, masks_list, class_ids_list
 
     if auto_show:
         plt.show()
+        
+    if save:
+        fig.savefig('grid.pdf', bbox_inches='tight')
         
     return
 

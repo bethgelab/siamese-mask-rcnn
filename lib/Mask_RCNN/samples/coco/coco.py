@@ -114,16 +114,9 @@ class CocoDataset(utils.Dataset):
         image_dir = "{}/{}{}".format(dataset_dir, subset, year)
 
         # Load all classes or a subset?
-        # if not class_ids:
-        #     # All classes
-        #     class_ids = sorted(coco.getCatIds())
-        if len(self.active_classes) == 0:
+        if not class_ids:
             # All classes
             class_ids = sorted(coco.getCatIds())
-        else:
-            class_ids = sorted(list(filter(lambda c: c in coco.getCatIds(), self.active_classes)))
-
-        self.class_ids_with_holes = class_ids
 
         # All images or a subset?
         if class_ids:

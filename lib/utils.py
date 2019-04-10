@@ -302,6 +302,26 @@ def siamese_data_generator(dataset, config, shuffle=True, augmentation=imgaug.au
 
 class IndexedCocoDataset(coco.CocoDataset):
     
+    def __init__(self):
+        super(IndexedCocoDataset, self).__init__()
+        self.active_classes = []
+
+    def set_active_classes(self, active_classes):
+        """active_classes could be an array of integers (class ids), or
+           a filename (string) containing these class ids (one number per line)"""
+        if type(active_classes) == str:
+            with open(active_classes, 'r') as f:
+                content = f.readlines()
+            active_classes = [int(x.strip()) for x in content]
+        self.active_classes = list(active_classes)
+        
+    def get_class_ids(self, active_classes, dataset_dir, subset, year):
+        coco = COCO("{}/annotations/instances_{}{}.json".format(dataset_dir, subset, year))
+        class_ids = sorted(list(filter(lambda c: c in coco.getCatIds(), self.active_classes)))
+        return class_ids
+
+        self.class_ids_with_holes = class_ids
+    
     def build_indices(self):
 
         self.image_category_index = IndexedCocoDataset._build_image_category_index(self)

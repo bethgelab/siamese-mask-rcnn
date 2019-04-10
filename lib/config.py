@@ -4,8 +4,7 @@ import numpy as np
 MASK_RCNN_MODEL_PATH = 'Mask_RCNN/'
 
 if MASK_RCNN_MODEL_PATH not in sys.path:
-#
-sys.path.append(MASK_RCNN_MODEL_PATH)
+    sys.path.append(MASK_RCNN_MODEL_PATH)
     
 from mrcnn.config import Config as MRCNNConfig
 

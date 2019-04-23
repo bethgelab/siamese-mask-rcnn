@@ -685,8 +685,9 @@ def display_grid(target_list, image_list, boxes_list, masks_list, class_ids_list
                       figsize=(16, 16), ax=None,
                       show_mask=True, show_bbox=True,
                       colors=None, captions=None,
+                      show_scores=True,
                       target_shift=10, fontsize=14,
-                      save=False):
+                      linewidth=2, save=False):
     """
     boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image coordinates.
     masks: [height, width, num_instances]
@@ -765,7 +766,7 @@ def display_grid(target_list, image_list, boxes_list, masks_list, class_ids_list
                     continue
                 y1, x1, y2, x2 = boxes[i]
                 if show_bbox:
-                    p = visualize.patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=2,
+                    p = visualize.patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=linewidth,
                                         alpha=0.7, linestyle="dashed",
                                         edgecolor=color, facecolor='none')
                     ax.add_patch(p)
@@ -778,8 +779,9 @@ def display_grid(target_list, image_list, boxes_list, masks_list, class_ids_list
                     caption = "{:.3f}".format(score) if score else 'no score'
                 else:
                     caption = captions[i]
-                ax.text(x1, y1 + 8, caption,
-                        color='w', size=11, backgroundcolor="none")
+                if show_scores:
+                    ax.text(x1, y1 + 8, caption,
+                            color='w', size=int(10/14*fontsize), backgroundcolor="none")
 
                 # Mask
                 mask = masks[:, :, i]

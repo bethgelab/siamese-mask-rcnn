@@ -37,7 +37,6 @@ Linux, Python 3.4+, Tensorflow, Keras 2.1.6, cython, scikit_image 0.13.1, h5py, 
 
 The model requires [MS COCO](http://cocodataset.org/#home) and the [CocoAPI](https://github.com/waleedka/coco) to be added to `/data`.
 ```
-mkdir data
 cd data
 git clone https://github.com/cocodataset/cocoapi.git
 ```

@@ -2,7 +2,7 @@
 __pycache__/*
 lib/__pycache__/*
 *.h5
-data/*
+data/coco*
 deprecated/*
 
 # Created by https://www.gitignore.io/api/vim,linux,macos,jupyternotebook

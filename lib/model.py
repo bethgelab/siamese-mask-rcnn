@@ -242,8 +242,10 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
         input_image = KL.Input(
             shape=config.IMAGE_SHAPE.tolist(), name="input_image")
         # CHANGE: add target input
+        if not config.NUM_TARGETS:
+            config.NUM_TARGETS = 1
         input_target = KL.Input(
-            shape=config.TARGET_SHAPE.tolist(), name="input_target")
+            shape=[config.NUM_TARGETS] + config.TARGET_SHAPE.tolist(), name="input_target")
         input_image_meta = KL.Input(shape=[config.IMAGE_META_SIZE],
                                     name="input_image_meta")
         if mode == "training":
@@ -288,8 +290,23 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
         _, IC2, IC3, IC4, IC5 = resnet(input_image)
         IP2, IP3, IP4, IP5, IP6 = fpn([IC2, IC3, IC4, IC5])
         # Create Target FR
-        _, TC2, TC3, TC4, TC5 = resnet(input_target)
-        TP2, TP3, TP4, TP5, TP6 = fpn([TC2, TC3, TC4, TC5])
+        input_targets = [KL.Lambda(lambda x: x[:,idx,...])(input_target) for idx in range(input_target.shape[1])]
+        for k, one_target in enumerate(input_targets):
+            _, TC2, TC3, TC4, TC5 = resnet(one_target)
+            out = fpn([TC2, TC3, TC4, TC5])
+            if k == 0:
+                target_pyramid = out
+            else:
+                target_pyramid = [KL.Add(name="target_adding_{}_{}".format(k, i))(
+                    [target_pyramid[i], out[i]]) for i in range(len(out))]
+                
+        TP2, TP3, TP4, TP5, TP6 = [KL.Lambda(lambda x: x / config.NUM_TARGETS)(
+            target_pyramid[i]) for i in range(len(target_pyramid))]
+#        one_target = KL.Lambda(lambda x: x[:,0,...])(input_target)
+#        one_target = input_target[:,0,...]
+#         _, TC2, TC3, TC4, TC5 = resnet(one_target)
+#         TP2, TP3, TP4, TP5, TP6 = fpn([TC2, TC3, TC4, TC5])
+    
         
         # CHANGE: add siamese distance copmputation
         # Combine FPs using L1 distance
@@ -298,6 +315,7 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
         P4 = l1_distance_graph(IP4, TP4, feature_maps = 3*self.config.FPN_FEATUREMAPS//2, name='P4')
         P5 = l1_distance_graph(IP5, TP5, feature_maps = 3*self.config.FPN_FEATUREMAPS//2, name='P5')
         P6 = l1_distance_graph(IP6, TP6, feature_maps = 3*self.config.FPN_FEATUREMAPS//2, name='P6')
+        
 
         # Note that P6 is used in RPN, but not in the classifier heads.
         rpn_feature_maps = [P2, P3, P4, P5, P6]

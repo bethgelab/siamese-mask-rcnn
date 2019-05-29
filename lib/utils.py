@@ -166,10 +166,13 @@ def siamese_data_generator(dataset, config, shuffle=True, augmentation=imgaug.au
             category = np.random.choice(active_categories)
                 
             # Generate siamese target crop
-            target = get_one_target(category, dataset, config, augmentation=augmentation)
-            if target is None: # fix until a better ADE20K metadata is built
-                print('skip target')
-                continue
+            if not config.NUM_TARGETS:
+                config.NUM_TARGETS = 1
+            targets = []
+            for i in range(config.NUM_TARGETS):
+                targets.append(get_one_target(category, dataset, config, augmentation=augmentation))
+#             target = np.stack(target, axis=0)
+                    
 #             print(target_class_id)
             target_class_id = category
             target_class_ids = np.array([target_class_id])
@@ -213,7 +216,7 @@ def siamese_data_generator(dataset, config, shuffle=True, augmentation=imgaug.au
                 batch_gt_boxes = np.zeros(
                     (batch_size, config.MAX_GT_INSTANCES, 4), dtype=np.int32)
                 batch_targets = np.zeros(
-                    (batch_size,) + target.shape, dtype=np.float32)
+                    (batch_size, config.NUM_TARGETS) + targets[0].shape, dtype=np.float32)
 #                 batch_target_class_ids = np.zeros(
 #                     (batch_size, config.MAX_TARGET_INSTANCES), dtype=np.int32)
                 if config.USE_MINI_MASK:
@@ -250,7 +253,7 @@ def siamese_data_generator(dataset, config, shuffle=True, augmentation=imgaug.au
             batch_rpn_match[b] = rpn_match[:, np.newaxis]
             batch_rpn_bbox[b] = rpn_bbox
             batch_images[b] = modellib.mold_image(image.astype(np.float32), config)
-            batch_targets[b] = modellib.mold_image(target.astype(np.float32), config)
+            batch_targets[b] = np.stack([modellib.mold_image(target.astype(np.float32), config) for target in targets], axis=0)
             batch_gt_class_ids[b, :siamese_class_ids.shape[0]] = siamese_class_ids
 #             batch_target_class_ids[b, :target_class_ids.shape[0]] = target_class_ids
             batch_gt_boxes[b, :gt_boxes.shape[0]] = gt_boxes
@@ -521,11 +524,14 @@ def evaluate_dataset(model, dataset, dataset_object, eval_type="bbox", dataset_t
             image = dataset.load_image(image_id)
 
             # Draw random target
-            try:
-                target = get_one_target(category, dataset, model.config)
-            except:
-                print('error fetching target of category', category)
-                continue
+            target = []
+            for k in range(model.config.NUM_TARGETS):
+                try:
+                    target.append(get_one_target(category, dataset, model.config))
+                except:
+                    print('error fetching target of category', category)
+                    continue
+            target = np.stack(target, axis=0)
             # Run detection
             t = time.time()
             try:
@@ -679,7 +685,9 @@ def display_grid(target_list, image_list, boxes_list, masks_list, class_ids_list
                       figsize=(16, 16), ax=None,
                       show_mask=True, show_bbox=True,
                       colors=None, captions=None,
-                      target_shift=10, fontsize=14):
+                      show_scores=True,
+                      target_shift=10, fontsize=14,
+                      linewidth=2, save=False):
     """
     boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image coordinates.
     masks: [height, width, num_instances]
@@ -758,7 +766,7 @@ def display_grid(target_list, image_list, boxes_list, masks_list, class_ids_list
                     continue
                 y1, x1, y2, x2 = boxes[i]
                 if show_bbox:
-                    p = visualize.patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=2,
+                    p = visualize.patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=linewidth,
                                         alpha=0.7, linestyle="dashed",
                                         edgecolor=color, facecolor='none')
                     ax.add_patch(p)
@@ -771,8 +779,9 @@ def display_grid(target_list, image_list, boxes_list, masks_list, class_ids_list
                     caption = "{:.3f}".format(score) if score else 'no score'
                 else:
                     caption = captions[i]
-                ax.text(x1, y1 + 8, caption,
-                        color='w', size=11, backgroundcolor="none")
+                if show_scores:
+                    ax.text(x1, y1 + 8, caption,
+                            color='w', size=int(10/14*fontsize), backgroundcolor="none")
 
                 # Mask
                 mask = masks[:, :, i]
@@ -795,6 +804,10 @@ def display_grid(target_list, image_list, boxes_list, masks_list, class_ids_list
             target_height, target_width = target.shape[:2]
             target_height = target_height // 2
             target_width = target_width // 2
+            target_area = target_height * target_width
+            target_scaling = np.sqrt((192//2*96//2) / target_area)
+            target_height = int(target_height * target_scaling)
+            target_width = int(target_width * target_scaling)
             ax.imshow(target, extent=[target_shift, target_shift + target_width * 2, height - target_shift, height - target_shift - target_height * 2], zorder=9)
             rect = visualize.patches.Rectangle((target_shift, height - target_shift), target_width * 2, -target_height * 2, linewidth=5, edgecolor='white', facecolor='none', zorder=10)
             ax.add_patch(rect)
@@ -804,6 +817,9 @@ def display_grid(target_list, image_list, boxes_list, masks_list, class_ids_list
 
     if auto_show:
         plt.show()
+        
+    if save:
+        fig.savefig('grid.pdf', bbox_inches='tight')
         
     return
 

@@ -52,15 +52,24 @@ Get the pretrained weights from the [releases menu](https://github.com/bethgelab
 
 ## Training
 
-To train a small version of siamese mask r-cnn on MS COCO simply follow the instructions in the [training.ipynb](training.ipynb) notebook. This model runs on a single GPU with 12GB memory.
+To train siamese mask r-cnn on MS COCO simply follow the instructions in the [training.ipynb](training.ipynb) notebook. 
+There are two model configs available, a small one which runs on a single GPU with 12GB memory and a large one which needs 4 GPUs with 12GB memory each.
+The second model config is the same as used in our experiments.
 
-To train the models reported in the paper run the notebooks provided in [experiments](experiments). Those models need 4 GPUs with 12GB memory each.
+To reproduce our results and train the models reported in the paper run the notebooks provided in [experiments](experiments). 
+Those models need 4 GPUs with 12GB memory each.
+
+Our models are trained on the coco 2017 training set, of which we remove the last 3000 images for validation.
 
 ## Evaluation
 
 To evaluate and visualize a models results run the [evaluation.ipynb](evaluation.ipynb) notebook. Make sure to use the same config as used for training the model.
 
-To evaluate the models reported in the paper run the evaluation notebook provided in [experiments](experiments). Each model will be evaluated 5 times to compensate for the stochastic effects introduced by randomly choosing the reference instances. The final result is the mean of those five runs.
+To evaluate the models reported in the paper run the evaluation notebook provided in [experiments](experiments). 
+Each model will be evaluated 5 times to compensate for the stochastic effects introduced by randomly choosing the reference instances. 
+The final result is the mean of those five runs.
+
+We use the coco 2017 val set for testing and the last 3000 images from the training set for validation.
 
 ## Model description
 

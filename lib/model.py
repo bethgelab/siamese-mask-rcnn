@@ -374,7 +374,7 @@ class SiameseMaskRCNN(modellib.MaskRCNN):
                 input_rois = KL.Input(shape=[config.POST_NMS_ROIS_TRAINING, 4],
                                       name="input_roi", dtype=np.int32)
                 # Normalize coordinates
-                target_rois = KL.Lambda(lambda x: modellig.norm_boxes_graph(
+                target_rois = KL.Lambda(lambda x: modellib.norm_boxes_graph(
                     x, K.shape(input_image)[1:3]))(input_rois)
             else:
                 target_rois = rpn_rois
